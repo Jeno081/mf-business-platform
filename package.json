@@ -1,0 +1,25 @@
+{
+  "name": "mf-business-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plateforme e-commerce MF Business — Maison Forlife Business",
+  "packageManager": "pnpm@11.28.5",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @mf/api dev",
+    "build": "pnpm --filter @mf/types build && pnpm --filter @mf/database build && pnpm --filter @mf/api build",
+    "typecheck": "pnpm --filter @mf/types typecheck && pnpm --filter @mf/database typecheck && pnpm --filter @mf/api typecheck",
+    "db:generate": "pnpm --filter @mf/database db:generate",
+    "db:validate": "pnpm --filter @mf/database db:validate",
+    "db:migrate": "pnpm --filter @mf/database db:migrate",
+    "db:deploy": "pnpm --filter @mf/database db:deploy",
+    "db:studio": "pnpm --filter @mf/database db:studio",
+    "api:dev": "pnpm --filter @mf/api dev"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.0",
+    "typescript": "^5.9.0"
+  }
+}
