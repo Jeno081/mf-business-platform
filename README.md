@@ -113,7 +113,7 @@ Voir [`docs/auth.md`](docs/auth.md) pour les flux complets.
 | Service | Usage | Statut |
 | --- | --- | --- |
 | **Clever Cloud** | MySQL 8 production | Créée — connexion à vérifier |
-| **GitHub** | Dépôt `mf-business-platform` | Créé — push en attente d'authentification |
+| **GitHub** | Dépôt `mf-business-platform` | Créé — push effectué |
 | Vercel | Frontend | Plus tard |
 | Render | API | Plus tard |
 | Cloudinary | Images | Plus tard |
