@@ -14,14 +14,14 @@ Poser des fondations solides, testables et déployables avant de construire le f
 - [x] Gestion d'erreurs centralisée
 - [x] Schéma Prisma MySQL complet
 - [x] Base MySQL Clever Cloud provisionnée
-- [ ] Connexion MySQL Clever Cloud vérifiée
+- [x] Connexion MySQL Clever Cloud vérifiée
 - [x] Migration initiale SQL générée
 - [x] Migration 2FA générée
-- [ ] Migrations appliquées sur MySQL
+- [x] Migrations appliquées sur MySQL
 - [ ] Seed des 188 produits et images
 - [x] Authentification client (Argon2id, JWT, refresh tokens)
 - [x] Authentification admin (2FA TOTP, RBAC, audit)
-- [ ] Tests d'intégration API avec base réelle
+- [x] Tests d'intégration API avec base réelle
 
 ## Critères d'acceptation
 
@@ -32,6 +32,28 @@ Poser des fondations solides, testables et déployables avant de construire le f
 5. Un client peut créer un compte, se connecter et rafraîchir sa session.
 6. Les secrets ne sont jamais présents dans le dépôt.
 7. Les logs ne contiennent ni mot de passe ni token.
+
+## Résultats des tests — 21 novembre 2026
+
+- **45 tables** créées sur Clever Cloud, dont `_prisma_migrations`.
+- Migrations appliquées :
+  - `20261120224500_init`
+  - `20261121230000_add_two_factor`
+- Colonnes 2FA vérifiées : `twoFactorSecret`, `twoFactorEnabled`, `twoFactorRecoveryCodes`.
+- Client :
+  - inscription `201` ;
+  - `GET /auth/me` avec token `200` ;
+  - refresh token `200` ;
+  - login `200`.
+- Admin :
+  - login → `requiresTwoFactorSetup: true` ;
+  - génération du secret + QR code ;
+  - activation 2FA + 8 codes de secours ;
+  - `GET /admin/auth/me` → `SUPER_ADMIN` ;
+  - désactivation 2FA → `204` ;
+  - login après reset → setup requis.
+- Compte de test client supprimé après les tests.
+- Compte admin conservé : `jenovicmulomba@gmail.com`, rôle `SUPER_ADMIN`, 2FA à configurer à la première connexion.
 
 ## Étapes
 
