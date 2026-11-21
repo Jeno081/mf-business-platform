@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
@@ -6,11 +7,14 @@ import pinoHttp from 'pino-http';
 import { env } from './config/env';
 import { logger } from './lib/logger';
 import { errorHandler, notFoundHandler } from './middlewares/error-handler';
+import { adminAuthRouter } from './modules/admin-auth/routes';
+import { authRouter } from './modules/auth/routes';
 import { healthRouter } from './routes/health';
 
 export const app: Express = express();
 
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(
   cors({
@@ -26,6 +30,7 @@ app.use(
 );
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(cookieParser());
 app.use(
   pinoHttp({
     logger,
@@ -52,12 +57,16 @@ app.get('/api/v1', (_req, res) => {
     version: '0.1.0',
     endpoints: {
       health: '/api/v1/health',
+      auth: '/api/v1/auth',
+      adminAuth: '/api/v1/admin/auth',
     },
   });
 });
 
 app.use('/health', healthRouter);
 app.use('/api/v1/health', healthRouter);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/admin/auth', adminAuthRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

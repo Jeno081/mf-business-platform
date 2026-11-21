@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { prisma } from '@mf/database';
 import { app } from './app';
 import { env } from './config/env';

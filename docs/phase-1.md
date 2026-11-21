@@ -13,13 +13,15 @@ Poser des fondations solides, testables et déployables avant de construire le f
 - [x] Logger Pino avec masquage des secrets
 - [x] Gestion d'erreurs centralisée
 - [x] Schéma Prisma MySQL complet
-- [ ] Base MySQL Clever Cloud provisionnée
+- [x] Base MySQL Clever Cloud provisionnée
+- [ ] Connexion MySQL Clever Cloud vérifiée
 - [x] Migration initiale SQL générée
-- [ ] Migration initiale appliquée sur MySQL
+- [x] Migration 2FA générée
+- [ ] Migrations appliquées sur MySQL
 - [ ] Seed des 188 produits et images
-- [ ] Authentification client (Argon2id, JWT, refresh tokens)
-- [ ] Authentification admin (2FA TOTP, RBAC, audit)
-- [ ] Tests d'intégration API
+- [x] Authentification client (Argon2id, JWT, refresh tokens)
+- [x] Authentification admin (2FA TOTP, RBAC, audit)
+- [ ] Tests d'intégration API avec base réelle
 
 ## Critères d'acceptation
 
