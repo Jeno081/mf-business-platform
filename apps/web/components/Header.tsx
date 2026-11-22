@@ -2,16 +2,16 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { CartIcon, CloseIcon, MenuIcon, SearchIcon } from './Icons';
 
 const NAV_LINKS = [
   { href: '/', label: 'Accueil' },
-  { href: '/#featured', label: 'Boutique' },
-  { href: '/#categories', label: 'Smartphones' },
-  { href: '/#categories', label: 'Tablettes' },
-  { href: '/#categories', label: 'Audio' },
-  { href: '/#categories', label: 'Accessoires' },
+  { href: '/catalogue', label: 'Boutique' },
+  { href: '/catalogue?category=smartphones', label: 'Smartphones' },
+  { href: '/catalogue?category=tablettes', label: 'Tablettes' },
+  { href: '/catalogue?category=audio', label: 'Audio' },
+  { href: '/catalogue?category=accessoires', label: 'Accessoires' },
   { href: '/#contact', label: 'Contact' },
 ];
 
@@ -42,12 +42,6 @@ export function Header() {
     setMenuOpen(false);
     setSearchOpen(false);
     setCartOpen(false);
-  }
-
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSearchOpen(false);
-    document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
   }
 
   return (
@@ -143,13 +137,14 @@ export function Header() {
 
         {searchOpen && (
           <div className="search-panel">
-            <form className="container search-panel__form" onSubmit={handleSearch}>
+            <form className="container search-panel__form" action="/catalogue" method="get">
               <SearchIcon />
               <label className="sr-only" htmlFor="site-search">
                 Rechercher un produit
               </label>
               <input
                 id="site-search"
+                name="search"
                 type="search"
                 placeholder="iPhone, Samsung, écouteurs…"
                 autoComplete="off"
@@ -159,9 +154,6 @@ export function Header() {
                 Rechercher
               </button>
             </form>
-            <p className="search-panel__note">
-              La recherche détaillée arrive avec le catalogue. En attendant, parcourez la sélection.
-            </p>
           </div>
         )}
       </header>

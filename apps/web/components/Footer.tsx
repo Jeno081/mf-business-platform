@@ -8,11 +8,11 @@ import {
 } from './Icons';
 
 const SHOP_LINKS = [
-  ['Smartphones', '/#categories'],
-  ['Tablettes', '/#categories'],
-  ['Audio', '/#categories'],
-  ['Accessoires', '/#categories'],
-  ['Toute la sélection', '/#featured'],
+  ['Smartphones', '/catalogue?category=smartphones'],
+  ['Tablettes', '/catalogue?category=tablettes'],
+  ['Audio', '/catalogue?category=audio'],
+  ['Accessoires', '/catalogue?category=accessoires'],
+  ['Toute la sélection', '/catalogue'],
 ];
 
 const HOUSE_LINKS = [

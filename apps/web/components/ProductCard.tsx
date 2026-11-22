@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { formatPrice, imageUrl, type Product } from '@/lib/api';
 import { StarIcon, WhatsappIcon } from './Icons';
 
@@ -16,18 +17,24 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     <article className="product-card">
       <div className="product-card__media">
         {product.badge && <span className="badge">{product.badge}</span>}
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={image}
-            alt={product.imageAlt ?? product.name}
-            width={900}
-            height={900}
-            loading={priority ? 'eager' : 'lazy'}
-          />
-        ) : (
-          <span className="product-card__placeholder" aria-hidden="true" />
-        )}
+        <Link
+          className="product-card__media-link"
+          href={`/produit/${product.slug}`}
+          aria-label={`Voir ${product.name}`}
+        >
+          {image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image}
+              alt={product.imageAlt ?? product.name}
+              width={900}
+              height={900}
+              loading={priority ? 'eager' : 'lazy'}
+            />
+          ) : (
+            <span className="product-card__placeholder" aria-hidden="true" />
+          )}
+        </Link>
         <a
           className="product-card__quick"
           href={`https://wa.me/243811860632?text=${orderMessage}`}
@@ -38,7 +45,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           <WhatsappIcon />
         </a>
       </div>
-      <div className="product-card__body">
+      <Link className="product-card__body" href={`/produit/${product.slug}`}>
         <span className="product-card__brand">{product.brand.name}</span>
         <h3 className="product-card__name">{product.name}</h3>
         <p className="product-card__meta">{product.subtitle}</p>
@@ -56,7 +63,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             <span className="price__old">{formatPrice(product.compareAtPrice)}</span>
           )}
         </div>
-      </div>
+      </Link>
     </article>
   );
 }

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Category } from '@/lib/api';
 import { ArrowIcon } from './Icons';
 
@@ -38,7 +39,7 @@ function CategoryIcon({ slug }: { slug: string }) {
 
 export function CategoryCard({ category }: { category: Category }) {
   return (
-    <article className="category-card">
+    <Link className="category-card" href={`/catalogue?category=${category.slug}`}>
       <span className="category-card__icon">
         <CategoryIcon slug={category.slug} />
       </span>
@@ -50,6 +51,6 @@ export function CategoryCard({ category }: { category: Category }) {
       <span className="category-card__arrow" aria-hidden="true">
         <ArrowIcon />
       </span>
-    </article>
+    </Link>
   );
 }

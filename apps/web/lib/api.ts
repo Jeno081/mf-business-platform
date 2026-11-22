@@ -48,6 +48,42 @@ export interface Product {
   variants: ProductVariant[];
 }
 
+export interface ProductDetail extends Product {
+  description: string | null;
+  features: string[];
+  specs: { label: string; value: string }[];
+  images: { id: string; url: string; alt: string | null }[];
+  metaTitle: string | null;
+  metaDescription: string | null;
+  createdAt: string;
+  reviewsList: {
+    id: string;
+    rating: number;
+    title: string | null;
+    body: string | null;
+    author: string;
+    createdAt: string;
+  }[];
+}
+
+export interface ProductsResponse {
+  data: Product[];
+  meta: { page: number; perPage: number; total: number; totalPages: number };
+}
+
+export interface ProductQuery {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  category?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: 'newest' | 'price-asc' | 'price-desc' | 'rating' | 'name';
+  inStock?: boolean;
+  featured?: boolean;
+}
+
 export interface HomeData {
   featured: Product[];
   categories: Category[];
@@ -55,11 +91,6 @@ export interface HomeData {
   hero: Product;
   promoProducts: Product[];
   totalProducts: number;
-}
-
-interface ProductsResponse {
-  data: Product[];
-  meta: { total: number };
 }
 
 interface SingleResponse<T> {
@@ -88,11 +119,24 @@ export function formatPrice(value: number): string {
   return `${new Intl.NumberFormat('fr-FR').format(value)} $`;
 }
 
+export async function getProducts(query: ProductQuery = {}): Promise<ProductsResponse> {
+  const params = new URLSearchParams();
+  if (query.page) params.set('page', String(query.page));
+  if (query.perPage) params.set('perPage', String(query.perPage));
+  if (query.search) params.set('search', query.search);
+  if (query.category) params.set('category', query.category);
+  if (query.brand) params.set('brand', query.brand);
+  if (query.minPrice !== undefined) params.set('minPrice', String(query.minPrice));
+  if (query.maxPrice !== undefined) params.set('maxPrice', String(query.maxPrice));
+  if (query.sort) params.set('sort', query.sort);
+  if (query.inStock) params.set('inStock', 'true');
+  if (query.featured) params.set('featured', 'true');
+
+  return request<ProductsResponse>(`/api/v1/products?${params.toString()}`);
+}
+
 export async function getFeaturedProducts(): Promise<Product[]> {
-  const response = await request<ProductsResponse>(
-    '/api/v1/products?featured=true&perPage=8&sort=rating',
-  );
-  return response.data;
+  return (await getProducts({ featured: true, perPage: 8, sort: 'rating' })).data;
 }
 
 export async function getCategories(): Promise<Category[]> {
@@ -107,6 +151,16 @@ export async function getBrands(): Promise<Brand[]> {
 
 export async function getProduct(slug: string): Promise<Product> {
   const response = await request<SingleResponse<Product>>(`/api/v1/products/${slug}`);
+  return response.data;
+}
+
+export async function getProductDetail(slug: string): Promise<ProductDetail> {
+  const response = await request<SingleResponse<ProductDetail>>(`/api/v1/products/${slug}`);
+  return response.data;
+}
+
+export async function getRelatedProducts(slug: string): Promise<Product[]> {
+  const response = await request<{ data: Product[] }>(`/api/v1/products/${slug}/related`);
   return response.data;
 }
 

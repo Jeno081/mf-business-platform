@@ -76,7 +76,7 @@ export default async function HomePage() {
               12 mois, choisis par des humains et livrés à votre porte.
             </p>
             <div className="hero__actions">
-              <a className="btn btn--gold" href="#featured">
+              <a className="btn btn--gold" href="/catalogue">
                 Explorer la sélection <ArrowIcon />
               </a>
               <a
@@ -154,7 +154,7 @@ export default async function HomePage() {
               </>
             }
             note="Du flagship au premier smartphone : chaque produit est choisi pour sa fiabilité, pas pour son étiquette."
-            action={{ href: '#featured', label: 'Voir la sélection' }}
+            action={{ href: '/catalogue', label: 'Voir la sélection' }}
           />
 
           <div className="category-grid">
@@ -175,7 +175,7 @@ export default async function HomePage() {
               </>
             }
             note="Les modèles que je recommande le plus souvent en boutique — et que je réapprovisionne le plus vite."
-            action={{ href: '#categories', label: 'Explorer les univers' }}
+            action={{ href: '/catalogue', label: 'Explorer les univers' }}
           />
 
           <div className="product-grid">
@@ -198,7 +198,7 @@ export default async function HomePage() {
                 Une coque qui protège vraiment, un chargeur qui tient la route, un câble qui ne
                 lâche pas. Les détails font une journée sans accroc.
               </p>
-              <a className="btn btn--gold" href="#featured">
+              <a className="btn btn--gold" href="/catalogue?category=accessoires">
                 Découvrir les accessoires <ArrowIcon />
               </a>
             </div>
