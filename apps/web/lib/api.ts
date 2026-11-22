@@ -93,6 +93,55 @@ export interface HomeData {
   totalProducts: number;
 }
 
+export interface OrderItemResponse {
+  id: string;
+  productName: string;
+  variantLabel: string | null;
+  sku: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+}
+
+export interface OrderResponse {
+  id: string;
+  orderNumber: string;
+  status: string;
+  paymentStatus: string;
+  paymentMethod: 'CASH_ON_DELIVERY' | 'MOBILE_MONEY';
+  currency: string;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  customer: { name: string; phone: string; email: string | null };
+  shippingAddress: {
+    recipient: string;
+    phone: string;
+    city: string;
+    commune: string;
+    address: string;
+    note?: string | null;
+  };
+  notes: string | null;
+  createdAt: string;
+  items: OrderItemResponse[];
+}
+
+export interface CreateOrderPayload {
+  items: { variantId: string; quantity: number }[];
+  customer: {
+    name: string;
+    phone: string;
+    email?: string;
+    city: string;
+    commune: string;
+    address: string;
+    note?: string;
+  };
+  paymentMethod: 'CASH_ON_DELIVERY' | 'MOBILE_MONEY';
+  idempotencyKey: string;
+}
+
 interface SingleResponse<T> {
   data: T;
 }
@@ -195,4 +244,41 @@ export async function getHomeData(): Promise<HomeData> {
   const totalProducts = categories.reduce((total, category) => total + category.productCount, 0);
 
   return { featured, categories, brands, hero, promoProducts, totalProducts };
+}
+
+export async function createOrder(payload: CreateOrderPayload): Promise<OrderResponse> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25_000);
+
+  try {
+    const response = await fetch(`${API_URL}/api/v1/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': payload.idempotencyKey,
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+
+    const body = (await response.json().catch(() => null)) as
+      | { data?: OrderResponse; error?: { message?: string } }
+      | null;
+
+    if (!response.ok || !body?.data) {
+      throw new Error(
+        body?.error?.message ?? `La commande n’a pas pu être enregistrée (${response.status}).`,
+      );
+    }
+
+    return body.data;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Le serveur met trop de temps à répondre. Vérifiez votre connexion et réessayez.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }

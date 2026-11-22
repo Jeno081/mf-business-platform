@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { formatPrice, imageUrl } from '@/lib/api';
+import { useRef, useState } from 'react';
+import { createOrder, formatPrice, imageUrl, type OrderResponse } from '@/lib/api';
 import { useCart } from '@/components/CartProvider';
 import { deliveryFee } from '@/lib/cart';
 import { WhatsappIcon } from '@/components/Icons';
@@ -43,6 +43,14 @@ export default function CheckoutPage() {
   const [terms, setTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
+  const [order, setOrder] = useState<OrderResponse | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const idempotencyKey = useRef(
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `checkout-${Date.now()}`,
+  ).current;
   const delivery = deliveryFee(subtotal);
   const total = subtotal + delivery;
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -66,48 +74,86 @@ export default function CheckoutPage() {
     return Object.keys(next).length === 0;
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (items.length === 0) return;
+    if (items.length === 0 || submitting) return;
     if (!validate()) return;
 
     const paymentLabel =
       PAYMENT_OPTIONS.find(([value]) => value === form.payment)?.[1] ?? 'Paiement à la livraison';
+    const paymentMethod = form.payment === 'mobile' ? 'MOBILE_MONEY' : 'CASH_ON_DELIVERY';
+    const note =
+      form.payment === 'boutique'
+        ? [form.note, 'Paiement en boutique'].filter(Boolean).join(' — ')
+        : form.note;
 
-    const lines = items.map(
-      (item, index) =>
-        `${index + 1}. ${item.name}${item.variantLabel ? ` — ${item.variantLabel}` : ''}\n   Quantité : ${item.quantity} · ${formatPrice(item.price * item.quantity)}`,
-    );
+    setSubmitting(true);
+    setOrderError('');
 
-    const message = [
-      'NOUVELLE COMMANDE — MF BUSINESS',
-      '',
-      `Client : ${form.name}`,
-      `Téléphone : ${form.phone}`,
-      form.email ? `E-mail : ${form.email}` : null,
-      `Ville : ${form.city}`,
-      `Commune : ${form.commune}`,
-      `Adresse : ${form.address}`,
-      form.note ? `Note : ${form.note}` : null,
-      '',
-      'PRODUITS',
-      ...lines,
-      '',
-      `Sous-total : ${formatPrice(subtotal)}`,
-      `Livraison : ${delivery === 0 ? 'Offerte' : formatPrice(delivery)}`,
-      `TOTAL : ${formatPrice(total)}`,
-      '',
-      `Paiement : ${paymentLabel}`,
-      `Articles : ${count}`,
-      '',
-      'Merci de confirmer la disponibilité et le créneau de livraison.',
-    ]
-      .filter((line) => line !== null)
-      .join('\n');
+    try {
+      const created = await createOrder({
+        items: items.map((item) => ({
+          variantId: item.variantId ?? '',
+          quantity: item.quantity,
+        })),
+        customer: {
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          city: form.city,
+          commune: form.commune,
+          address: form.address,
+          note,
+        },
+        paymentMethod,
+        idempotencyKey,
+      });
 
-    const url = `https://wa.me/243811860632?text=${encodeURIComponent(message)}`;
-    setWhatsappUrl(url);
-    window.open(url, '_blank', 'noopener,noreferrer');
+      const lines = created.items.map(
+        (item, index) =>
+          `${index + 1}. ${item.productName}${item.variantLabel ? ` — ${item.variantLabel}` : ''}\n   Quantité : ${item.quantity} · ${formatPrice(item.lineTotal)}`,
+      );
+
+      const message = [
+        'NOUVELLE COMMANDE — MF BUSINESS',
+        `Commande : ${created.orderNumber}`,
+        '',
+        `Client : ${form.name}`,
+        `Téléphone : ${form.phone}`,
+        form.email ? `E-mail : ${form.email}` : null,
+        `Ville : ${form.city}`,
+        `Commune : ${form.commune}`,
+        `Adresse : ${form.address}`,
+        note ? `Note : ${note}` : null,
+        '',
+        'PRODUITS',
+        ...lines,
+        '',
+        `Sous-total : ${formatPrice(created.subtotal)}`,
+        `Livraison : ${created.deliveryFee === 0 ? 'Offerte' : formatPrice(created.deliveryFee)}`,
+        `TOTAL : ${formatPrice(created.total)}`,
+        '',
+        `Paiement : ${paymentLabel}`,
+        `Articles : ${created.items.reduce((sum, item) => sum + item.quantity, 0)}`,
+        '',
+        `Référence commande : ${created.orderNumber}`,
+      ]
+        .filter((line) => line !== null)
+        .join('\n');
+
+      const url = `https://wa.me/243811860632?text=${encodeURIComponent(message)}`;
+      setOrder(created);
+      setWhatsappUrl(url);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      setOrderError(
+        error instanceof Error
+          ? error.message
+          : 'La commande n’a pas pu être enregistrée. Réessayez.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (items.length === 0 && !whatsappUrl) {
@@ -149,11 +195,12 @@ export default function CheckoutPage() {
 
         {whatsappUrl && (
           <div className="checkout-success">
-            <p className="eyebrow">Commande préparée</p>
-            <h2 className="display">Le message WhatsApp est prêt.</h2>
+            <p className="eyebrow">Commande enregistrée</p>
+            <h2 className="display">La commande {order?.orderNumber} est prête.</h2>
             <p>
-              Si la fenêtre WhatsApp ne s’est pas ouverte, cliquez sur le bouton ci-dessous. Un
-              conseiller confirmera la disponibilité et le paiement.
+              La commande est enregistrée dans la base MF Business. Si la fenêtre WhatsApp ne
+              s’est pas ouverte, cliquez sur le bouton ci-dessous. Un conseiller confirmera la
+              disponibilité et le paiement.
             </p>
             <div className="checkout-success__actions">
               <a className="btn btn--dark" href={whatsappUrl} target="_blank" rel="noopener">
@@ -165,6 +212,7 @@ export default function CheckoutPage() {
                 onClick={() => {
                   clearCart();
                   setWhatsappUrl(null);
+                  setOrder(null);
                 }}
               >
                 Vider le panier
@@ -292,8 +340,17 @@ export default function CheckoutPage() {
             </label>
             {errors.terms && <em className="checkout-error">{errors.terms}</em>}
 
-            <button className="btn btn--dark checkout-submit" type="submit">
-              Envoyer la commande sur WhatsApp
+            {orderError && (
+              <div className="checkout-error-box" role="alert">
+                {orderError}
+              </div>
+            )}
+            <button
+              className="btn btn--dark checkout-submit"
+              type="submit"
+              disabled={submitting}
+            >
+              {submitting ? 'Enregistrement de la commande…' : 'Enregistrer et envoyer sur WhatsApp'}
             </button>
           </form>
 

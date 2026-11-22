@@ -4403,3 +4403,18 @@ select {
     display: block !important;
   }
 }
+
+.checkout-error-box {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--danger);
+  border-radius: 5px;
+  color: var(--danger);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.checkout-submit:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}

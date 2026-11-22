@@ -8,7 +8,7 @@ Frontend public de MF Business, construit avec **Next.js 15 (App Router) + React
 - `/catalogue` — catalogue, filtres, recherche, pagination
 - `/produit/[slug]` — fiche produit
 - `/panier` — panier persistant
-- `/checkout` — validation et message WhatsApp
+- `/checkout` — enregistrement de la commande et message WhatsApp
 - `/offline` — page hors ligne
 - `/manifest.webmanifest` — PWA
 

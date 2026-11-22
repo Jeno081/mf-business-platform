@@ -166,5 +166,6 @@ la PWA sont disponibles. Voir [`docs/frontend.md`](docs/frontend.md) et
 - [`docs/catalog.md`](docs/catalog.md)
 - [`docs/frontend.md`](docs/frontend.md)
 - [`docs/pwa.md`](docs/pwa.md)
+- [`docs/orders-api.md`](docs/orders-api.md)
 - [`docs/deploy-render.md`](docs/deploy-render.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)

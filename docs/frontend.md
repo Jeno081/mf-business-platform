@@ -29,6 +29,8 @@
 - Ajout au panier depuis la fiche produit avec variante et quantité.
 - `/panier` : lignes, quantités, suppression, sous-total, livraison, total.
 - `/checkout` : coordonnées, adresse, commune, paiement, validation, récapitulatif.
+- Enregistrement serveur de la commande avant WhatsApp (`POST /api/v1/orders`).
+- Numéro de commande `MF-...` affiché et inclus dans le message WhatsApp.
 - Génération du message WhatsApp complet (client, adresse, produits, totaux).
 - PWA : manifest, icônes, service worker, page hors ligne, bouton d’installation.
 - Mode standalone sur Android, iOS (écran d’accueil) et PC.
@@ -60,7 +62,8 @@
 
 ## Points d’attention
 
-- **Commande** : le checkout génère un message WhatsApp ; aucun paiement n’est prélevé sur le site.
+- **Commande** : le checkout enregistre la commande en base, puis génère un message WhatsApp ; aucun paiement n’est prélevé sur le site.
+- **Commandes** : voir [`docs/orders-api.md`](docs/orders-api.md).
 - **PWA** : voir [`docs/pwa.md`](docs/pwa.md).
 - **CORS/Render** : images servies avec `Cross-Origin-Resource-Policy: cross-origin`.
 - **API** : accueil pré-rendu avec revalidate 120 s ; catalogue et fiche produit dynamiques.
@@ -78,7 +81,8 @@
 - Variantes : changement de coloris et quantité fonctionnel.
 - Ajout au panier : persistence après navigation et rechargement.
 - `/panier` : quantités, suppression, total.
-- `/checkout` : validation, message WhatsApp généré avec produit et adresse.
+- `/checkout` : validation, commande enregistrée, numéro `MF-...`, message WhatsApp généré avec produit et adresse.
+- Idempotence : une même clé ne crée pas de doublon.
 - Manifest 200, icônes 200, service worker `activated`.
 - 390 px : pas de débordement.
 - 1440 px : pas de débordement.
