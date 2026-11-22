@@ -248,7 +248,7 @@ export async function getHomeData(): Promise<HomeData> {
 
 export async function createOrder(payload: CreateOrderPayload): Promise<OrderResponse> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25_000);
+  const timeout = setTimeout(() => controller.abort(), 45_000);
 
   try {
     const response = await fetch(`${API_URL}/api/v1/orders`, {
