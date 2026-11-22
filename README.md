@@ -110,6 +110,9 @@ logo Maison Forlife. Le catalogue, les fiches produit, le panier, le checkout et
 la PWA sont disponibles. Voir [`docs/frontend.md`](docs/frontend.md) et
 [`docs/pwa.md`](docs/pwa.md).
 
+Le back-office séparé `apps/admin` est documenté dans
+[`docs/admin.md`](docs/admin.md).
+
 ---
 
 ## Scripts utiles
@@ -167,5 +170,6 @@ la PWA sont disponibles. Voir [`docs/frontend.md`](docs/frontend.md) et
 - [`docs/frontend.md`](docs/frontend.md)
 - [`docs/pwa.md`](docs/pwa.md)
 - [`docs/orders-api.md`](docs/orders-api.md)
+- [`docs/admin.md`](docs/admin.md)
 - [`docs/deploy-render.md`](docs/deploy-render.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)

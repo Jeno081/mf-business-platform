@@ -1,10 +1,20 @@
-# apps/admin — Back-office (Phase 4)
+# apps/admin — Back-office
 
-Application Next.js séparée, protégée par :
+Application Next.js séparée du site public.
 
-- 2FA TOTP obligatoire ;
-- RBAC (`SUPPORT`, `STOCK`, `MANAGER`, `SUPER_ADMIN`) ;
-- audit log ;
-- domaine dédié en production.
+- Connexion admin + 2FA TOTP obligatoire.
+- Dashboard, commandes, produits, stocks.
+- Accès API protégé par JWT et 2FA.
+- Déploiement Vercel dédié.
 
-Modules : dashboard, produits, stocks, commandes, clients, promotions, messages, paramètres.
+## Lancer
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:4000 pnpm --filter @mf/admin dev -p 3002
+```
+
+Ouvrir http://localhost:3002.
+
+## Documentation
+
+Voir [`../../docs/admin.md`](../../docs/admin.md).

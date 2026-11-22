@@ -20,7 +20,9 @@
     "admin:create": "pnpm --filter @mf/api admin:create",
     "seed": "pnpm --filter @mf/database seed",
     "web:dev": "pnpm --filter @mf/web dev",
-    "web:build": "pnpm --filter @mf/web build"
+    "web:build": "pnpm --filter @mf/web build",
+    "admin:dev": "pnpm --filter @mf/admin dev",
+    "admin:build": "pnpm --filter @mf/admin build"
   },
   "devDependencies": {
     "prettier": "^3.6.0",
