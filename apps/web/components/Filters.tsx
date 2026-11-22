@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 export function Filters({
   children,
@@ -9,25 +9,20 @@ export function Filters({
   children: ReactNode;
   activeCount?: number;
 }) {
-  const [open, setOpen] = useState(true);
-
-  useEffect(() => {
-    if (window.matchMedia('(max-width: 900px)').matches) {
-      setOpen(false);
-    }
-  }, []);
+  const [open, setOpen] = useState(false);
 
   return (
-    <details
-      className="filters"
-      open={open}
-      onToggle={(event) => setOpen(event.currentTarget.open)}
-    >
-      <summary>
+    <div className={`filters ${open ? 'is-open' : ''}`}>
+      <button
+        className="filters__summary"
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
         <span>Filtres</span>
         {activeCount > 0 && <strong>{activeCount}</strong>}
-      </summary>
-      {children}
-    </details>
+      </button>
+      <div className="filters__body">{children}</div>
+    </div>
   );
 }

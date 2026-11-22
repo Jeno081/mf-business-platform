@@ -8,6 +8,7 @@ Généré par [`apps/web/app/manifest.ts`](apps/web/app/manifest.ts) et servi su
 - Nom : **MF Business — Maison Forlife**
 - Nom court : **MF Business**
 - `display: standalone`
+- `display_override: ['standalone', 'minimal-ui']`
 - `start_url: /`
 - Couleurs : noir `#0f0f0f`, ivoire `#f3efe6`
 - Icônes 192, 512 et maskable 512 dans `apps/web/public/icons/`
@@ -18,7 +19,7 @@ Généré par [`apps/web/app/manifest.ts`](apps/web/app/manifest.ts) et servi su
 Fichier [`apps/web/public/sw.js`](apps/web/public/sw.js), enregistré par
 `PwaRegister` au chargement.
 
-- Cache `mf-business-v1`.
+- Cache `mf-business-v2`.
 - Pré-cache : page hors ligne, icônes, logos.
 - Navigation : réseau d’abord, cache en secours, puis `/offline`.
 - `_next/static` : réseau puis cache.

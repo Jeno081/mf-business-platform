@@ -1,5 +1,5 @@
 /* MF Business — service worker PWA */
-const CACHE = 'mf-business-v1';
+const CACHE = 'mf-business-v2';
 const OFFLINE_URL = '/offline';
 const PRECACHE = [
   OFFLINE_URL,

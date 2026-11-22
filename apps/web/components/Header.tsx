@@ -14,7 +14,7 @@ const NAV_LINKS = [
   { href: '/catalogue?category=tablettes', label: 'Tablettes' },
   { href: '/catalogue?category=audio', label: 'Audio' },
   { href: '/catalogue?category=accessoires', label: 'Accessoires' },
-  { href: '/#contact', label: 'Contact' },
+  { href: '/contact', label: 'Contact' },
 ];
 
 export function Header() {

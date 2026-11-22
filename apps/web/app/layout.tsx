@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { BottomNav } from '@/components/BottomNav';
 import { CartProvider } from '@/components/CartProvider';
+import { PageTransition } from '@/components/PageTransition';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { PwaRegister } from '@/components/PwaRegister';
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
     'iPhone, Samsung, Huawei, Xiaomi, iPad, Tecno : des appareils authentiques, garantis 12 mois et livrés à Kinshasa. Paiement à la livraison.',
   applicationName: 'MF Business',
   manifest: '/manifest.webmanifest',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'MF Business' },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'MF Business' },
   icons: {
     icon: '/favicon.png',
     apple: '/icons/apple-touch-icon.png',
@@ -30,6 +32,7 @@ export const viewport: Viewport = {
   themeColor: '#0f0f0f',
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -49,8 +52,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         </a>
         <CartProvider>
           <Header />
-          {children}
+          <PageTransition>{children}</PageTransition>
           <Footer />
+          <BottomNav />
         </CartProvider>
         <PwaRegister />
       </body>

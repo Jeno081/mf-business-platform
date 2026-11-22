@@ -33,6 +33,19 @@
 - PWA : manifest, icônes, service worker, page hors ligne, bouton d’installation.
 - Mode standalone sur Android, iOS (écran d’accueil) et PC.
 
+### Lot 4 — UX mobile app-like
+
+- Bottom navigation fixe : Accueil, Boutique, Panier, Contact.
+- Burger du header masqué sur mobile.
+- Safe areas iOS (encoche, Dynamic Island, barre de gestes).
+- `display_override` standalone dans le manifest.
+- Suppression du tap bleu, de la sélection de texte sur les contrôles et du zoom double-tap.
+- Champs à 16 px sur mobile (pas de zoom iOS).
+- Transitions de page douces.
+- Skeleton loaders sur l’accueil, le catalogue et les fiches produit.
+- Page `/contact`.
+- Voir [`docs/mobile-ux.md`](docs/mobile-ux.md).
+
 ## Routes
 
 | Route | Rôle |

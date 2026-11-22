@@ -20,7 +20,7 @@ const HOUSE_LINKS = [
   ['Notre maison', '/#values'],
   ['Livraison & retours', '/#services'],
   ['Garantie 12 mois', '/#services'],
-  ['Contact', '/#contact'],
+  ['Contact', '/contact'],
 ];
 
 export function Footer() {
