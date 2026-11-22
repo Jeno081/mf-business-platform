@@ -204,8 +204,13 @@ model Product {
   name             String        @db.VarChar(191)
   slug             String        @unique @db.VarChar(191)
   sku              String?       @unique @db.VarChar(80)
+  subtitle         String?       @db.VarChar(191)
+  series           String?       @db.VarChar(120)
+  badge            String?       @db.VarChar(60)
+  badgeTone        String?       @db.VarChar(40)
   shortDescription String?       @db.VarChar(500)
   description      String?       @db.Text
+  keywords         String?       @db.Text
   price            Decimal       @db.Decimal(12, 2)
   compareAtPrice   Decimal?      @db.Decimal(12, 2)
   currency         String        @default("USD") @db.VarChar(3)

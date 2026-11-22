@@ -18,7 +18,8 @@ Poser des fondations solides, testables et déployables avant de construire le f
 - [x] Migration initiale SQL générée
 - [x] Migration 2FA générée
 - [x] Migrations appliquées sur MySQL
-- [ ] Seed des 188 produits et images
+- [x] Seed des 188 produits et images
+- [x] API catalogue publique et admin
 - [x] Authentification client (Argon2id, JWT, refresh tokens)
 - [x] Authentification admin (2FA TOTP, RBAC, audit)
 - [x] Tests d'intégration API avec base réelle
@@ -54,6 +55,21 @@ Poser des fondations solides, testables et déployables avant de construire le f
   - login après reset → setup requis.
 - Compte de test client supprimé après les tests.
 - Compte admin conservé : `jenovicmulomba@gmail.com`, rôle `SUPER_ADMIN`, 2FA à configurer à la première connexion.
+
+### Catalogue
+
+- **188 produits** importés.
+- **503 variantes**.
+- **188 images WebP**.
+- **16 marques**, **4 catégories**.
+- `GET /products` → 188.
+- Recherche : iPhone 15 → 3, Fold → 10, Samsung → 40.
+- Catégorie accessoires → 13, marque Apple → 32.
+- Prix 100–300 $ → 36.
+- Image produit → `200 image/webp`.
+- Admin : création, liste, mise à jour, archivage.
+- Stock : +1 puis -1, stock restauré.
+- Produit de test supprimé.
 
 ## Étapes
 

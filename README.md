@@ -77,6 +77,23 @@ pnpm admin:create -- --email admin@mfbusiness.cm --password "MotDePasseTresFort1
 
 Voir [`docs/auth.md`](docs/auth.md) pour les flux complets.
 
+### Catalogue
+
+Le catalogue est importé en base :
+
+- **188 produits**, **503 variantes**, **188 images WebP** ;
+- **16 marques**, **4 catégories** ;
+- API publique : `/api/v1/products`, `/api/v1/products/:slug`, `/api/v1/brands`,
+  `/api/v1/categories` ;
+- API admin protégée : `/api/v1/admin/products`, stocks et archivage ;
+- images servies sur `/images/products/*.webp`.
+
+Voir [`docs/catalog.md`](docs/catalog.md) pour les paramètres et exemples.
+
+```bash
+pnpm seed
+```
+
 ---
 
 ## Scripts utiles
@@ -92,6 +109,7 @@ Voir [`docs/auth.md`](docs/auth.md) pour les flux complets.
 | `pnpm db:deploy` | Applique les migrations en production |
 | `pnpm db:studio` | Ouvre Prisma Studio |
 | `pnpm admin:create` | Crée ou promeut un administrateur |
+| `pnpm seed` | Importe les 188 produits et images |
 
 ---
 
@@ -127,4 +145,5 @@ Voir [`docs/auth.md`](docs/auth.md) pour les flux complets.
 - [`docs/architecture.md`](docs/architecture.md)
 - [`docs/phase-1.md`](docs/phase-1.md)
 - [`docs/auth.md`](docs/auth.md)
+- [`docs/catalog.md`](docs/catalog.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { type Express } from 'express';
@@ -9,6 +10,7 @@ import { logger } from './lib/logger';
 import { errorHandler, notFoundHandler } from './middlewares/error-handler';
 import { adminAuthRouter } from './modules/admin-auth/routes';
 import { authRouter } from './modules/auth/routes';
+import { adminCatalogRouter, catalogRouter } from './modules/catalog/routes';
 import { healthRouter } from './routes/health';
 
 export const app: Express = express();
@@ -65,8 +67,17 @@ app.get('/api/v1', (_req, res) => {
 
 app.use('/health', healthRouter);
 app.use('/api/v1/health', healthRouter);
+app.use(
+  '/images',
+  express.static(path.resolve(__dirname, '../public/images'), {
+    maxAge: '7d',
+    immutable: true,
+  }),
+);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin/auth', adminAuthRouter);
+app.use('/api/v1', catalogRouter);
+app.use('/api/v1/admin', adminCatalogRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

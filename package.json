@@ -17,7 +17,8 @@
     "db:deploy": "pnpm --filter @mf/database db:deploy",
     "db:studio": "pnpm --filter @mf/database db:studio",
     "api:dev": "pnpm --filter @mf/api dev",
-    "admin:create": "pnpm --filter @mf/api admin:create"
+    "admin:create": "pnpm --filter @mf/api admin:create",
+    "seed": "pnpm --filter @mf/database seed"
   },
   "devDependencies": {
     "prettier": "^3.6.0",
