@@ -2,13 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import { formatPrice, type ProductDetail } from '@/lib/api';
-import { WhatsappIcon } from './Icons';
+import { useCart } from './CartProvider';
+import { CartIcon, WhatsappIcon } from './Icons';
 
 export function ProductPurchase({ product }: { product: ProductDetail }) {
   const availableVariants = product.variants.filter((variant) => variant.stockQuantity > 0);
   const initialVariant = availableVariants[0] ?? product.variants[0] ?? null;
   const [variantId, setVariantId] = useState(initialVariant?.id ?? '');
   const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
 
   const variant = useMemo(
     () => product.variants.find((item) => item.id === variantId) ?? initialVariant,
@@ -17,6 +20,25 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
 
   const label = [variant?.color, variant?.storage].filter(Boolean).join(' · ');
   const total = product.price * quantity;
+  const stock = variant?.stockQuantity ?? product.stock;
+
+  function handleAddToCart() {
+    addItem({
+      productId: product.id,
+      slug: product.slug,
+      name: product.name,
+      brand: product.brand.name,
+      price: product.price,
+      image: product.image,
+      variantId: variant?.id ?? null,
+      variantLabel: label || null,
+      quantity,
+      stock,
+    });
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 2200);
+  }
+
   const message = encodeURIComponent(
     `Bonjour MF Business, je souhaite commander :\n\n${product.name}${
       label ? ` — ${label}` : ''
@@ -78,14 +100,24 @@ export function ProductPurchase({ product }: { product: ProductDetail }) {
         </div>
       </div>
 
-      <a
-        className="btn btn--dark purchase__cta"
-        href={`https://wa.me/243811860632?text=${message}`}
-        target="_blank"
-        rel="noopener"
-      >
-        <WhatsappIcon /> Commander sur WhatsApp
-      </a>
+      <div className="purchase__actions">
+        <button className="btn btn--dark purchase__cta" type="button" onClick={handleAddToCart}>
+          <CartIcon /> {added ? 'Ajouté au panier' : 'Ajouter au panier'}
+        </button>
+        <a
+          className="btn btn--outline purchase__cta"
+          href={`https://wa.me/243811860632?text=${message}`}
+          target="_blank"
+          rel="noopener"
+        >
+          <WhatsappIcon /> Commander sur WhatsApp
+        </a>
+      </div>
+      {added && (
+        <p className="purchase__added">
+          Produit ajouté. <a href="/panier">Voir le panier →</a>
+        </p>
+      )}
       <p className="purchase__note">
         Paiement à la livraison ou en boutique. Un conseiller confirme la disponibilité et le
         créneau avec vous.

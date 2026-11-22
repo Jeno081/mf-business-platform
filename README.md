@@ -106,8 +106,9 @@ Par défaut : http://localhost:3000. Si le port est occupé :
 `pnpm --filter @mf/web exec next dev -p 3001`.
 
 Le design system reprend l’identité validée : noir/ivoire, Bodoni Moda, DM Sans,
-logo Maison Forlife. Le catalogue et les fiches produit sont disponibles sur
-`/catalogue` et `/produit/[slug]`. Voir [`docs/frontend.md`](docs/frontend.md).
+logo Maison Forlife. Le catalogue, les fiches produit, le panier, le checkout et
+la PWA sont disponibles. Voir [`docs/frontend.md`](docs/frontend.md) et
+[`docs/pwa.md`](docs/pwa.md).
 
 ---
 
@@ -164,5 +165,6 @@ logo Maison Forlife. Le catalogue et les fiches produit sont disponibles sur
 - [`docs/auth.md`](docs/auth.md)
 - [`docs/catalog.md`](docs/catalog.md)
 - [`docs/frontend.md`](docs/frontend.md)
+- [`docs/pwa.md`](docs/pwa.md)
 - [`docs/deploy-render.md`](docs/deploy-render.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)

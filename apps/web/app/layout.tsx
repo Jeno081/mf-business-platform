@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { CartProvider } from '@/components/CartProvider';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
+import { PwaRegister } from '@/components/PwaRegister';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -9,9 +11,11 @@ export const metadata: Metadata = {
   description:
     'iPhone, Samsung, Huawei, Xiaomi, iPad, Tecno : des appareils authentiques, garantis 12 mois et livrés à Kinshasa. Paiement à la livraison.',
   applicationName: 'MF Business',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'MF Business' },
   icons: {
     icon: '/favicon.png',
-    apple: '/favicon.png',
+    apple: '/icons/apple-touch-icon.png',
   },
   openGraph: {
     title: 'MF Business — La tech, avec soin.',
@@ -43,9 +47,12 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <a className="skip-link" href="#main">
           Aller au contenu
         </a>
-        <Header />
-        {children}
-        <Footer />
+        <CartProvider>
+          <Header />
+          {children}
+          <Footer />
+        </CartProvider>
+        <PwaRegister />
       </body>
     </html>
   );

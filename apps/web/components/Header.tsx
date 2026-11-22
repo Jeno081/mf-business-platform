@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { formatPrice, imageUrl } from '@/lib/api';
+import { useCart } from './CartProvider';
 import { CartIcon, CloseIcon, MenuIcon, SearchIcon } from './Icons';
 
 const NAV_LINKS = [
@@ -19,6 +21,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const { items, count, subtotal, setQuantity, removeItem } = useCart();
 
   useEffect(() => {
     const shouldLock = menuOpen || searchOpen || cartOpen;
@@ -118,7 +121,7 @@ export function Header() {
               }}
             >
               <CartIcon />
-              <span className="cart-btn__count">0</span>
+              {count > 0 && <span className="cart-btn__count">{count}</span>}
             </button>
             <button
               className="burger"
@@ -203,16 +206,92 @@ export function Header() {
             <CloseIcon />
           </button>
         </div>
-        <div className="cart-drawer__empty">
-          <span className="cart-drawer__icon">
-            <CartIcon />
-          </span>
-          <h2>Votre panier est vide.</h2>
-          <p>La sélection MF Business n’attend que vous. Le panier complet arrive à la prochaine étape.</p>
-          <Link className="btn btn--dark" href="/#featured" onClick={closeAll}>
-            Explorer la sélection
-          </Link>
-        </div>
+        {items.length === 0 ? (
+          <div className="cart-drawer__empty">
+            <span className="cart-drawer__icon">
+              <CartIcon />
+            </span>
+            <h2>Votre panier est vide.</h2>
+            <p>La sélection MF Business n’attend que vous. Ajoutez un produit depuis sa fiche.</p>
+            <Link className="btn btn--dark" href="/catalogue" onClick={closeAll}>
+              Explorer le catalogue
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="cart-drawer__items">
+              {items.map((item) => {
+                const image = imageUrl(item.image);
+                return (
+                  <div className="cart-drawer__item" key={`${item.productId}-${item.variantId}`}>
+                    <Link
+                      className="cart-drawer__thumb"
+                      href={`/produit/${item.slug}`}
+                      onClick={closeAll}
+                    >
+                      {image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={image} alt="" width={120} height={120} />
+                      ) : null}
+                    </Link>
+                    <div className="cart-drawer__item-body">
+                      <span className="cart-drawer__item-brand">{item.brand}</span>
+                      <Link href={`/produit/${item.slug}`} onClick={closeAll}>
+                        {item.name}
+                      </Link>
+                      <span className="cart-drawer__item-variant">{item.variantLabel}</span>
+                      <div className="cart-drawer__item-bottom">
+                        <div className="cart-drawer__qty">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setQuantity(item.productId, item.variantId, item.quantity - 1)
+                            }
+                            aria-label="Diminuer la quantité"
+                          >
+                            −
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setQuantity(item.productId, item.variantId, item.quantity + 1)
+                            }
+                            aria-label="Augmenter la quantité"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <strong>{formatPrice(item.price * item.quantity)}</strong>
+                      </div>
+                    </div>
+                    <button
+                      className="cart-drawer__remove"
+                      type="button"
+                      onClick={() => removeItem(item.productId, item.variantId)}
+                      aria-label={`Retirer ${item.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="cart-drawer__foot">
+              <div className="cart-drawer__subtotal">
+                <span>Sous-total</span>
+                <strong>{formatPrice(subtotal)}</strong>
+              </div>
+              <p>Livraison calculée à l’étape suivante.</p>
+              <Link className="btn btn--outline" href="/panier" onClick={closeAll}>
+                Voir le panier
+              </Link>
+              <Link className="btn btn--dark" href="/checkout" onClick={closeAll}>
+                Passer commande
+              </Link>
+            </div>
+          </>
+        )}
       </aside>
     </>
   );

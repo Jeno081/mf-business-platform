@@ -2,6 +2,16 @@
 
 Frontend public de MF Business, construit avec **Next.js 15 (App Router) + React 19 + TypeScript**.
 
+## Routes
+
+- `/` — accueil
+- `/catalogue` — catalogue, filtres, recherche, pagination
+- `/produit/[slug]` — fiche produit
+- `/panier` — panier persistant
+- `/checkout` — validation et message WhatsApp
+- `/offline` — page hors ligne
+- `/manifest.webmanifest` — PWA
+
 ## Lancer en local
 
 ```bash
@@ -32,18 +42,24 @@ Le client typé est dans [`lib/api.ts`](lib/api.ts). Les pages utilisent les Ser
 - Typographies : **Bodoni Moda** pour les titres, **DM Sans** pour le texte.
 - Logo : `public/brand/logo-monogram.png`, `logo-full-white.png`, `logo-full-black.png`.
 - Favicon : `app/icon.png`.
+- Icônes PWA : `public/icons/`.
 
-## Structure
+## Panier
 
-```text
-app/
-  layout.tsx        header, footer, fonts, métadonnées
-  page.tsx          accueil
-  globals.css       design system + responsive
-components/
-  Header.tsx        navigation, menu mobile, recherche, panier
-  Footer.tsx        pied de page complet
-  ProductCard.tsx   carte produit
-  CategoryCard.tsx  carte catégorie
-lib/api.ts          client API typé
-```
+`CartProvider` + `lib/cart.ts` :
+
+- persistance `localStorage` clé `mf-cart-v1` ;
+- compteur header ;
+- tiroir panier ;
+- page `/panier` ;
+- checkout WhatsApp.
+
+## PWA
+
+- `app/manifest.ts`
+- `public/sw.js`
+- `components/PwaRegister.tsx`
+- `components/PwaInstall.tsx`
+- `app/offline/page.tsx`
+
+Voir [`../../docs/pwa.md`](../../docs/pwa.md).

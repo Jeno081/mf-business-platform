@@ -22,6 +22,17 @@
 - Navigation header/footer branchée sur le catalogue.
 - Recherche du header redirige vers `/catalogue?search=…`.
 
+### Lot 3 — Panier, checkout & PWA
+
+- Panier persistant dans `localStorage` (`mf-cart-v1`).
+- Header : compteur réel, tiroir panier avec quantités, suppression et sous-total.
+- Ajout au panier depuis la fiche produit avec variante et quantité.
+- `/panier` : lignes, quantités, suppression, sous-total, livraison, total.
+- `/checkout` : coordonnées, adresse, commune, paiement, validation, récapitulatif.
+- Génération du message WhatsApp complet (client, adresse, produits, totaux).
+- PWA : manifest, icônes, service worker, page hors ligne, bouton d’installation.
+- Mode standalone sur Android, iOS (écran d’accueil) et PC.
+
 ## Routes
 
 | Route | Rôle |
@@ -29,11 +40,15 @@
 | `/` | Accueil |
 | `/catalogue` | Catalogue et filtres |
 | `/produit/[slug]` | Fiche produit |
+| `/panier` | Panier |
+| `/checkout` | Validation de commande |
+| `/offline` | Page hors ligne |
+| `/manifest.webmanifest` | Manifest PWA |
 
 ## Points d’attention
 
-- **Panier réel / checkout** : prochain lot ; la fiche produit commande directement sur WhatsApp.
-- **PWA** : manifest, service worker et notifications prévus après le panier.
+- **Commande** : le checkout génère un message WhatsApp ; aucun paiement n’est prélevé sur le site.
+- **PWA** : voir [`docs/pwa.md`](docs/pwa.md).
 - **CORS/Render** : images servies avec `Cross-Origin-Resource-Policy: cross-origin`.
 - **API** : accueil pré-rendu avec revalidate 120 s ; catalogue et fiche produit dynamiques.
 - **Port local** : 3001 si 3000 est occupé.
@@ -48,8 +63,10 @@
 - `/catalogue?page=2` : 24 produits.
 - `/produit/iphone-15` : 200.
 - Variantes : changement de coloris et quantité fonctionnel.
-- Onglets produit : description, caractéristiques, livraison.
-- Cartes produits : liens vers `/produit/[slug]`.
+- Ajout au panier : persistence après navigation et rechargement.
+- `/panier` : quantités, suppression, total.
+- `/checkout` : validation, message WhatsApp généré avec produit et adresse.
+- Manifest 200, icônes 200, service worker `activated`.
 - 390 px : pas de débordement.
 - 1440 px : pas de débordement.
 - Aucune image cassée.

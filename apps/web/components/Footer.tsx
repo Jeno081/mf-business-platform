@@ -6,6 +6,7 @@ import {
   TiktokIcon,
   WhatsappIcon,
 } from './Icons';
+import { PwaInstall } from './PwaInstall';
 
 const SHOP_LINKS = [
   ['Smartphones', '/catalogue?category=smartphones'],
@@ -80,6 +81,7 @@ export function Footer() {
             <input id="newsletter-email" type="email" placeholder="votre@email.com" />
             <button type="submit">S’inscrire</button>
           </form>
+          <PwaInstall />
           <div className="footer__socials">
             <a href="https://wa.me/243811860632" target="_blank" rel="noopener" aria-label="WhatsApp">
               <WhatsappIcon />
