@@ -133,7 +133,7 @@ pnpm seed
 | **Clever Cloud** | MySQL 8 production | Connectée — migrations appliquées |
 | **GitHub** | Dépôt `mf-business-platform` | Créé — push effectué |
 | Vercel | Frontend | Plus tard |
-| Render | API | Plus tard |
+| Render | API | Déploiement en cours |
 | Cloudinary | Images | Plus tard |
 | Firebase | Push | Plus tard |
 | Upstash | Redis | Plus tard |
@@ -146,4 +146,5 @@ pnpm seed
 - [`docs/phase-1.md`](docs/phase-1.md)
 - [`docs/auth.md`](docs/auth.md)
 - [`docs/catalog.md`](docs/catalog.md)
+- [`docs/deploy-render.md`](docs/deploy-render.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)
