@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { formatPrice, imageUrl, type Product } from '@/lib/api';
-import { StarIcon, WhatsappIcon } from './Icons';
+import { StarIcon } from './Icons';
 
 interface ProductCardProps {
   product: Product;
@@ -9,9 +9,6 @@ interface ProductCardProps {
 
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const image = imageUrl(product.image);
-  const orderMessage = encodeURIComponent(
-    `Bonjour MF Business, je souhaite commander : ${product.name} (${formatPrice(product.price)}).`,
-  );
 
   return (
     <article className="product-card">
@@ -35,15 +32,6 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             <span className="product-card__placeholder" aria-hidden="true" />
           )}
         </Link>
-        <a
-          className="product-card__quick"
-          href={`https://wa.me/243811860632?text=${orderMessage}`}
-          target="_blank"
-          rel="noopener"
-          aria-label={`Commander ${product.name} sur WhatsApp`}
-        >
-          <WhatsappIcon />
-        </a>
       </div>
       <Link className="product-card__body" href={`/produit/${product.slug}`}>
         <span className="product-card__brand">{product.brand.name}</span>
