@@ -94,6 +94,20 @@ Voir [`docs/catalog.md`](docs/catalog.md) pour les paramètres et exemples.
 pnpm seed
 ```
 
+### Frontend
+
+La boutique Next.js est dans `apps/web`.
+
+```bash
+pnpm web:dev
+```
+
+Par défaut : http://localhost:3000. Si le port est occupé :
+`pnpm --filter @mf/web exec next dev -p 3001`.
+
+Le design system reprend l’identité validée : noir/ivoire, Bodoni Moda, DM Sans,
+logo Maison Forlife. Voir [`docs/frontend.md`](docs/frontend.md).
+
 ---
 
 ## Scripts utiles
@@ -110,6 +124,8 @@ pnpm seed
 | `pnpm db:studio` | Ouvre Prisma Studio |
 | `pnpm admin:create` | Crée ou promeut un administrateur |
 | `pnpm seed` | Importe les 188 produits et images |
+| `pnpm web:dev` | Lance la boutique Next.js |
+| `pnpm web:build` | Build Next.js de production |
 
 ---
 
@@ -146,5 +162,6 @@ pnpm seed
 - [`docs/phase-1.md`](docs/phase-1.md)
 - [`docs/auth.md`](docs/auth.md)
 - [`docs/catalog.md`](docs/catalog.md)
+- [`docs/frontend.md`](docs/frontend.md)
 - [`docs/deploy-render.md`](docs/deploy-render.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)

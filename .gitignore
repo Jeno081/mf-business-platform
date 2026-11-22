@@ -19,3 +19,7 @@ Thumbs.db
 uploads/
 tmp/
 .gitssh/
+
+.chrome-web/
+_shots_web/
+_tools/
