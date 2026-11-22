@@ -1,5 +1,20 @@
 # Déploiement de l'API sur Render
 
+## Service déployé
+
+**URL :** https://mf-business-api.onrender.com
+
+Vérifications effectuées le 22 novembre 2026 :
+
+- `GET /health` → `200`, `"status": "ok"`, environnement `production`
+- `GET /api/v1/products?perPage=1` → `188` produits
+- `GET /api/v1/products/iphone-15` → fiche complète
+- `GET /api/v1/brands` → 16 marques
+- `GET /api/v1/categories` → 4 catégories
+- `GET /images/products/iphone-15.webp` → `200 image/webp`
+- CORS `http://localhost:3000` → autorisé
+- `x-request-id` → présent
+
 ## Prérequis
 
 - Compte Render

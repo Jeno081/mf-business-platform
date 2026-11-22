@@ -133,7 +133,7 @@ pnpm seed
 | **Clever Cloud** | MySQL 8 production | Connectée — migrations appliquées |
 | **GitHub** | Dépôt `mf-business-platform` | Créé — push effectué |
 | Vercel | Frontend | Plus tard |
-| Render | API | Déploiement en cours |
+| Render | API | En ligne — https://mf-business-api.onrender.com |
 | Cloudinary | Images | Plus tard |
 | Firebase | Push | Plus tard |
 | Upstash | Redis | Plus tard |

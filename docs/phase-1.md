@@ -20,6 +20,7 @@ Poser des fondations solides, testables et déployables avant de construire le f
 - [x] Migrations appliquées sur MySQL
 - [x] Seed des 188 produits et images
 - [x] API catalogue publique et admin
+- [x] API déployée sur Render
 - [x] Authentification client (Argon2id, JWT, refresh tokens)
 - [x] Authentification admin (2FA TOTP, RBAC, audit)
 - [x] Tests d'intégration API avec base réelle
