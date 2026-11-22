@@ -1,5 +1,11 @@
 # Déploiement du frontend sur Vercel
 
+## Service déployé
+
+**URL :** https://mf-business-platform.vercel.app
+
+Vérifications du 22 novembre 2026 : /, /contact, /panier, /checkout, /catalogue, /produit/iphone-15, /manifest.webmanifest, /sw.js, /offline → 200. Manifest standalone, service worker mf-business-v2.
+
 ## Prérequis
 
 - Compte Vercel (connexion GitHub recommandée)
