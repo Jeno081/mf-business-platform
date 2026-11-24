@@ -112,9 +112,17 @@ PENDING / CONFIRMED / PREPARING → CANCELLED
 
 ## Limites de cette première version
 
-- Pas d’upload d’image depuis l’admin (les images existantes restent gérées côté API/assets).
-- Un nouveau produit sans image utilise le placeholder MF.
 - Les 60 premiers produits sont chargés pour le dashboard et les alertes stock.
+- Pas encore de gestion clients, promotions ou messages.
+
+## Images produits
+
+L’admin permet d’uploader des images Cloudinary depuis :
+
+- la création d’un produit ;
+- la fiche d’édition (**Médias → Images du produit**).
+
+Voir [`docs/cloudinary.md`](cloudinary.md).
 
 ## Vérifications
 

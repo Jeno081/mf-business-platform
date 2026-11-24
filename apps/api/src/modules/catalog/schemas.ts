@@ -55,6 +55,16 @@ export const createProductSchema = z
     color: z.string().trim().max(80).optional(),
     isFeatured: z.boolean().default(false),
     status: z.enum(['DRAFT', 'ACTIVE', 'ARCHIVED']).default('DRAFT'),
+    images: z
+      .array(
+        z.object({
+          url: z.string().url().max(500),
+          publicId: z.string().trim().max(191).optional(),
+          alt: z.string().trim().max(191).optional(),
+        }),
+      )
+      .max(8)
+      .optional(),
   })
   .strict();
 

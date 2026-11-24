@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { PageState } from '@/components/Ui';
@@ -9,14 +9,19 @@ import {
   createProduct,
   fetchBrands,
   fetchCategories,
+  uploadProductImage,
   type BrandOption,
   type CategoryOption,
+  type UploadedImage,
 } from '@/lib/api';
 import { ArrowLeftIcon } from '@/components/Icons';
 
 export default function NewProductPage() {
   const router = useRouter();
   const { api, token } = useAuth();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [images, setImages] = useState<UploadedImage[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,6 +75,27 @@ export default function NewProductPage() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  async function handleFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length || !token) return;
+    setUploading(true);
+    setError('');
+    try {
+      for (const file of files.slice(0, 8 - images.length)) {
+        if (file.size > 6 * 1024 * 1024) {
+          throw new Error(`${file.name} dépasse 6 Mo.`);
+        }
+        const uploaded = await uploadProductImage(token, file);
+        setImages((current) => [...current, uploaded.data]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload impossible.');
+    } finally {
+      setUploading(false);
+      if (fileInput.current) fileInput.current.value = '';
+    }
+  }
+
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!token) return;
@@ -90,6 +116,15 @@ export default function NewProductPage() {
         ...(form.color ? { color: form.color } : {}),
         status: form.status,
         isFeatured: form.isFeatured,
+        ...(images.length
+          ? {
+              images: images.map((image) => ({
+                url: image.url,
+                publicId: image.publicId,
+                alt: form.name,
+              })),
+            }
+          : {}),
       });
       router.replace(`/produits/${result.data.id}`);
     } catch (err) {
@@ -175,6 +210,51 @@ export default function NewProductPage() {
             <span>Description</span>
             <textarea rows={5} value={form.description} onChange={(event) => update('description', event.target.value)} />
           </label>
+        </div>
+
+        <div className="admin-image-upload">
+          <div className="admin-image-upload__head">
+            <div>
+              <strong>Images du produit</strong>
+              <span>JPG, PNG ou WebP · 6 Mo max · 8 images</span>
+            </div>
+            <button
+              className="admin-btn admin-btn--ghost"
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={uploading || images.length >= 8}
+            >
+              {uploading ? 'Upload…' : '+ Ajouter des images'}
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              hidden
+              onChange={handleFiles}
+            />
+          </div>
+          {images.length > 0 ? (
+            <div className="admin-image-grid">
+              {images.map((image, index) => (
+                <div className="admin-image-tile" key={image.publicId}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={image.url} alt="" />
+                  {index === 0 && <span className="admin-image-tile__badge">Principale</span>}
+                  <button
+                    type="button"
+                    onClick={() => setImages((current) => current.filter((item) => item.publicId !== image.publicId))}
+                    aria-label="Retirer l’image"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="admin-image-empty">Aucune image. Vous pourrez aussi en ajouter après création.</p>
+          )}
         </div>
         <button className="admin-btn admin-btn--primary" type="submit" disabled={busy}>
           {busy ? 'Création…' : 'Créer le produit'}

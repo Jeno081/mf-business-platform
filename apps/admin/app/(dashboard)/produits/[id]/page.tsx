@@ -1,18 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { AdminLoading, PageState } from '@/components/Ui';
 import {
   adjustStock,
+  attachProductImage,
+  deleteProductImage,
   fetchBrands,
   fetchCategories,
   fetchProduct,
   formatPrice,
   imageUrl,
+  setPrimaryProductImage,
   updateProduct,
+  uploadProductImage,
   type BrandOption,
   type CategoryOption,
   type ProductDetailAdmin,
@@ -51,6 +55,8 @@ export default function ProductEditPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { token, api } = useAuth();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const [product, setProduct] = useState<ProductDetailAdmin | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
@@ -134,6 +140,87 @@ export default function ProductEditPage() {
       setError(err instanceof Error ? err.message : 'Enregistrement impossible.');
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length || !token || !product) return;
+    setUploading(true);
+    setError('');
+    setMessage('');
+    try {
+      for (const file of files) {
+        if (file.size > 6 * 1024 * 1024) {
+          throw new Error(`${file.name} dépasse 6 Mo.`);
+        }
+        const uploaded = await uploadProductImage(token, file);
+        const attached = await attachProductImage(token, product.id, {
+          url: uploaded.data.url,
+          publicId: uploaded.data.publicId,
+          alt: product.name,
+        });
+        setProduct((current) =>
+          current
+            ? {
+                ...current,
+                image: current.image ?? attached.data.url,
+                images: [...current.images, attached.data].sort((a, b) => a.position - b.position),
+              }
+            : current,
+        );
+      }
+      setMessage('Images ajoutées.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload impossible.');
+    } finally {
+      setUploading(false);
+      if (fileInput.current) fileInput.current.value = '';
+    }
+  }
+
+  async function removeImage(imageId: string) {
+    if (!token || !product) return;
+    if (!window.confirm('Supprimer cette image du produit ?')) return;
+    setUploading(true);
+    setError('');
+    setMessage('');
+    try {
+      await deleteProductImage(token, product.id, imageId);
+      setProduct((current) => {
+        if (!current) return current;
+        const images = current.images.filter((image) => image.id !== imageId);
+        return { ...current, images, image: images[0]?.url ?? null };
+      });
+      setMessage('Image supprimée.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Suppression impossible.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function makePrimary(imageId: string) {
+    if (!token || !product) return;
+    setUploading(true);
+    setError('');
+    setMessage('');
+    try {
+      const result = await setPrimaryProductImage(token, product.id, imageId);
+      setProduct((current) =>
+        current
+          ? {
+              ...current,
+              images: result.data,
+              image: result.data[0]?.url ?? current.image,
+            }
+          : current,
+      );
+      setMessage('Image principale mise à jour.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Mise à jour impossible.');
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -269,6 +356,52 @@ export default function ProductEditPage() {
         </form>
 
         <aside className="admin-detail-aside">
+          <section className="admin-panel">
+            <div className="admin-panel__head">
+              <div>
+                <p className="admin-eyebrow">Médias</p>
+                <h3>Images du produit</h3>
+              </div>
+              <button
+                className="admin-btn admin-btn--ghost admin-btn--sm"
+                type="button"
+                onClick={() => fileInput.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? '…' : '+ Ajouter'}
+              </button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                hidden
+                onChange={handleFiles}
+              />
+            </div>
+            {product.images.length > 0 ? (
+              <div className="admin-image-grid admin-image-grid--small">
+                {product.images.map((image, index) => (
+                  <div className="admin-image-tile" key={image.id}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={image.url} alt={image.alt ?? ''} />
+                    {index === 0 && <span className="admin-image-tile__badge">Principale</span>}
+                    <button type="button" onClick={() => removeImage(image.id)} aria-label="Supprimer l’image">
+                      ×
+                    </button>
+                    {index > 0 && (
+                      <button className="admin-image-tile__star" type="button" onClick={() => makePrimary(image.id)} title="Définir comme principale">
+                        ★
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="admin-image-empty">Aucune image. Ajoutez-en une pour illustrer la fiche.</p>
+            )}
+          </section>
+
           <section className="admin-panel">
             <div className="admin-panel__head">
               <div>

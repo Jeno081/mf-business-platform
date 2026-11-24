@@ -14,6 +14,10 @@ const envSchema = z.object({
   COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']).default('lax'),
   COOKIE_DOMAIN: z.string().optional(),
   ADMIN_2FA_ISSUER: z.string().default('MF Business'),
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
+  CLOUDINARY_FOLDER: z.string().default('mf-business/products'),
 });
 
 const parsed = envSchema.safeParse(process.env);

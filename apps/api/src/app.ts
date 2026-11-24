@@ -13,6 +13,7 @@ import { authRouter } from './modules/auth/routes';
 import { adminCatalogRouter, catalogRouter } from './modules/catalog/routes';
 import { adminOrdersRouter } from './modules/orders/admin-routes';
 import { ordersRouter } from './modules/orders/routes';
+import { uploadsRouter } from './modules/uploads/routes';
 import { healthRouter } from './routes/health';
 
 export const app: Express = express();
@@ -85,6 +86,7 @@ app.use(
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin/auth', adminAuthRouter);
 app.use('/api/v1/admin/orders', adminOrdersRouter);
+app.use('/api/v1/admin/uploads', uploadsRouter);
 app.use('/api/v1/orders', ordersRouter);
 app.use('/api/v1', catalogRouter);
 app.use('/api/v1/admin', adminCatalogRouter);

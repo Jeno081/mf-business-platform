@@ -196,7 +196,7 @@ export interface ProductDetailAdmin extends AdminProduct {
   description: string | null;
   features: string[];
   specs: { label: string; value: string }[];
-  images: { id: string; url: string; alt: string | null }[];
+  images: { id: string; url: string; publicId: string | null; alt: string | null; position: number }[];
   metaTitle: string | null;
   metaDescription: string | null;
   createdAt: string;
@@ -370,3 +370,70 @@ export const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   CANCELLED: [],
   REFUNDED: [],
 };
+
+
+export interface UploadedImage {
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+}
+
+export async function uploadProductImage(
+  token: string,
+  file: File,
+): Promise<{ data: UploadedImage }> {
+  const form = new FormData();
+  form.append('file', file);
+
+  const response = await fetch(`${API_URL}/api/v1/admin/uploads/product-image`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+    credentials: 'include',
+  });
+  const payload = (await response.json().catch(() => null)) as
+    | { data?: UploadedImage; error?: { message?: string } }
+    | null;
+
+  if (!response.ok || !payload?.data) {
+    throw new Error(payload?.error?.message ?? 'Upload de l’image impossible.');
+  }
+
+  return { data: payload.data };
+}
+
+export function attachProductImage(
+  token: string,
+  productId: string,
+  image: { url: string; publicId?: string; alt?: string },
+): Promise<{ data: ProductDetailAdmin['images'][number] }> {
+  return apiFetch<{ data: ProductDetailAdmin['images'][number] }>(
+    `/api/v1/admin/products/${productId}/images`,
+    { token, method: 'POST', body: image },
+  );
+}
+
+export function deleteProductImage(
+  token: string,
+  productId: string,
+  imageId: string,
+): Promise<{ data: { deleted: boolean } }> {
+  return apiFetch<{ data: { deleted: boolean } }>(
+    `/api/v1/admin/products/${productId}/images/${imageId}`,
+    { token, method: 'DELETE' },
+  );
+}
+
+export function setPrimaryProductImage(
+  token: string,
+  productId: string,
+  imageId: string,
+): Promise<{ data: ProductDetailAdmin['images'] }> {
+  return apiFetch<{ data: ProductDetailAdmin['images'] }>(
+    `/api/v1/admin/products/${productId}/images/${imageId}/primary`,
+    { token, method: 'POST' },
+  );
+}

@@ -272,6 +272,7 @@ model ProductImage {
   productId String
   variantId String?
   url       String   @db.VarChar(500)
+  publicId  String?  @db.VarChar(191)
   alt       String?  @db.VarChar(191)
   position  Int      @default(0)
   createdAt DateTime @default(now())

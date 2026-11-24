@@ -1,5 +1,12 @@
 import { Router } from 'express';
 import { asyncHandler } from '../../lib/async-handler';
+import {
+  attachProductImage,
+  deleteProductImageFromProduct,
+  setPrimaryProductImage,
+  updateProductImage,
+} from '../images/service';
+import { attachImageSchema, imageParamsSchema, updateImageSchema } from '../images/schemas';
 import { requireAdmin, requireAuth } from '../../middlewares/auth';
 import {
   adminProductListQuerySchema,
@@ -117,5 +124,39 @@ adminCatalogRouter.patch(
     const { id } = productIdSchema.parse(req.params);
     const input = stockAdjustmentSchema.parse(req.body);
     res.json({ data: await adjustStock(id, input, req.auth!.userId) });
+  }),
+);
+
+adminCatalogRouter.post(
+  '/products/:id/images',
+  asyncHandler(async (req, res) => {
+    const { id } = productIdSchema.parse(req.params);
+    const input = attachImageSchema.parse(req.body);
+    res.status(201).json({ data: await attachProductImage(id, input) });
+  }),
+);
+
+adminCatalogRouter.patch(
+  '/products/:id/images/:imageId',
+  asyncHandler(async (req, res) => {
+    const { id, imageId } = imageParamsSchema.parse(req.params);
+    const input = updateImageSchema.parse(req.body);
+    res.json({ data: await updateProductImage(id, imageId, input) });
+  }),
+);
+
+adminCatalogRouter.post(
+  '/products/:id/images/:imageId/primary',
+  asyncHandler(async (req, res) => {
+    const { id, imageId } = imageParamsSchema.parse(req.params);
+    res.json({ data: await setPrimaryProductImage(id, imageId) });
+  }),
+);
+
+adminCatalogRouter.delete(
+  '/products/:id/images/:imageId',
+  asyncHandler(async (req, res) => {
+    const { id, imageId } = imageParamsSchema.parse(req.params);
+    res.json({ data: await deleteProductImageFromProduct(id, imageId) });
   }),
 );

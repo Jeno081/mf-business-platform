@@ -171,5 +171,6 @@ Le back-office séparé `apps/admin` est documenté dans
 - [`docs/pwa.md`](docs/pwa.md)
 - [`docs/orders-api.md`](docs/orders-api.md)
 - [`docs/admin.md`](docs/admin.md)
+- [`docs/cloudinary.md`](docs/cloudinary.md)
 - [`docs/deploy-render.md`](docs/deploy-render.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)

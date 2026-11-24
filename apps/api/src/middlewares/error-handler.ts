@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import multer from 'multer';
 import { ZodError } from 'zod';
 import { logger } from '../lib/logger';
 
@@ -37,6 +38,19 @@ export function errorHandler(
         code: 'VALIDATION_ERROR',
         message: 'Les données envoyées sont invalides.',
         details: error.flatten(),
+      },
+    });
+    return;
+  }
+
+  if (error instanceof multer.MulterError) {
+    res.status(400).json({
+      error: {
+        code: error.code === 'LIMIT_FILE_SIZE' ? 'IMAGE_TOO_LARGE' : 'UPLOAD_ERROR',
+        message:
+          error.code === 'LIMIT_FILE_SIZE'
+            ? 'L’image dépasse la limite de 6 Mo.'
+            : 'L’image n’a pas pu être reçue.',
       },
     });
     return;

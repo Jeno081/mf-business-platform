@@ -21,7 +21,7 @@ const cardInclude = {
 
 const detailInclude = {
   ...cardInclude,
-  images: { orderBy: { position: 'asc' as const }, select: { id: true, url: true, alt: true, position: true } },
+  images: { orderBy: { position: 'asc' as const }, select: { id: true, url: true, publicId: true, alt: true, position: true } },
   specs: { orderBy: { position: 'asc' as const }, select: { label: true, value: true } },
   features: { orderBy: { position: 'asc' as const }, select: { text: true } },
   reviews: {
@@ -71,7 +71,7 @@ export interface ProductDetailDto extends ProductCardDto {
   description: string | null;
   features: string[];
   specs: { label: string; value: string }[];
-  images: { id: string; url: string; alt: string | null }[];
+  images: { id: string; url: string; publicId: string | null; alt: string | null; position: number }[];
   variants: { id: string; color: string | null; storage: string | null; stockQuantity: number }[];
   metaTitle: string | null;
   metaDescription: string | null;
@@ -132,7 +132,7 @@ function mapDetail(product: DetailProduct): ProductDetailDto {
     description: product.description,
     features: product.features.map((feature) => feature.text),
     specs: product.specs.map((spec) => ({ label: spec.label, value: spec.value })),
-    images: product.images.map((image) => ({ id: image.id, url: image.url, alt: image.alt })),
+    images: product.images.map((image) => ({ id: image.id, url: image.url, publicId: image.publicId, alt: image.alt, position: image.position })),
     variants: product.variants.map((variant) => ({
       id: variant.id,
       color: variant.color,
@@ -421,6 +421,18 @@ export async function createProduct(input: CreateProductInput, actorId: string) 
           isActive: true,
         },
       },
+      ...(input.images?.length
+        ? {
+            images: {
+              create: input.images.map((image, position) => ({
+                url: image.url,
+                publicId: image.publicId ?? null,
+                alt: image.alt ?? input.name,
+                position,
+              })),
+            },
+          }
+        : {}),
     },
     include: cardInclude,
   });
