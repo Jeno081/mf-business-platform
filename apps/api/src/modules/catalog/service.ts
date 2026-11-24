@@ -454,7 +454,7 @@ export async function updateProduct(
   id: string,
   input: UpdateProductInput,
   actorId: string,
-): Promise<ProductCardDto> {
+): Promise<ProductDetailDto> {
   const existing = await prisma.product.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new AppError('Produit introuvable.', 404, 'PRODUCT_NOT_FOUND');
 
@@ -499,7 +499,7 @@ export async function updateProduct(
     },
   });
 
-  return mapCard(product);
+  return adminGetProduct(product.id);
 }
 
 export async function archiveProduct(id: string, actorId: string): Promise<void> {

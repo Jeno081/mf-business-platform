@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ProductCard } from '@/components/ProductCard';
+import { ProductGallery } from '@/components/ProductGallery';
 import { ProductPurchase } from '@/components/ProductPurchase';
 import { ProductTabs } from '@/components/ProductTabs';
 import {
@@ -69,12 +70,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         <div className="product-detail">
           <div className="product-detail__media">
             {product.badge && <span className="badge">{product.badge}</span>}
-            {image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={image} alt={product.imageAlt ?? product.name} width={900} height={900} />
-            ) : (
-              <span className="product-detail__placeholder" />
-            )}
+            <ProductGallery images={product.images} name={product.name} fallback={image} />
             {product.compareAtPrice && (
               <span className="product-detail__deal">
                 Économisez {formatPrice(product.compareAtPrice - product.price)}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { AdminLoading, PageState } from '@/components/Ui';
 import {
@@ -53,7 +53,6 @@ const emptyForm: ProductForm = {
 
 export default function ProductEditPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const { token, api } = useAuth();
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -135,7 +134,6 @@ export default function ProductEditPage() {
       });
       setProduct(result.data);
       setMessage('Produit enregistré.');
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Enregistrement impossible.');
     } finally {
@@ -384,7 +382,7 @@ export default function ProductEditPage() {
                 {product.images.map((image, index) => (
                   <div className="admin-image-tile" key={image.id}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image.url} alt={image.alt ?? ''} />
+                    <img src={imageUrl(image.url) ?? undefined} alt={image.alt ?? ''} />
                     {index === 0 && <span className="admin-image-tile__badge">Principale</span>}
                     <button type="button" onClick={() => removeImage(image.id)} aria-label="Supprimer l’image">
                       ×
