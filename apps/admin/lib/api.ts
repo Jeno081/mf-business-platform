@@ -347,6 +347,8 @@ export const STATUS_LABELS: Record<string, string> = {
   DELIVERED: 'Livrée',
   CANCELLED: 'Annulée',
   REFUNDED: 'Remboursée',
+  OPEN: 'Ouverte',
+  CLOSED: 'Fermée',
   PAID: 'Payée',
 };
 
@@ -436,4 +438,86 @@ export function setPrimaryProductImage(
     `/api/v1/admin/products/${productId}/images/${imageId}/primary`,
     { token, method: 'POST' },
   );
+}
+
+
+export interface AdminChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string | null;
+  senderType: 'CUSTOMER' | 'ADMIN' | 'SYSTEM';
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminChatConversation {
+  id: string;
+  status: string;
+  guestLabel: string;
+  assignedAdminId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastMessageAt: string | null;
+  lastMessage: AdminChatMessage | null;
+  unreadCount: number;
+}
+
+export async function fetchAdminChatConversations(
+  token: string,
+  query: { page?: number; perPage?: number; status?: string; search?: string } = {},
+): Promise<Paginated<AdminChatConversation>> {
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') params.set(key, String(value));
+  });
+  return apiFetch<Paginated<AdminChatConversation>>(
+    `/api/v1/admin/chat/conversations?${params.toString()}`,
+    { token },
+  );
+}
+
+export function fetchAdminChatConversation(
+  token: string,
+  id: string,
+): Promise<{ data: { conversation: AdminChatConversation; messages: AdminChatMessage[] } }> {
+  return apiFetch<{ data: { conversation: AdminChatConversation; messages: AdminChatMessage[] } }>(
+    `/api/v1/admin/chat/conversations/${id}`,
+    { token },
+  );
+}
+
+export function sendAdminChatMessage(
+  token: string,
+  id: string,
+  body: string,
+): Promise<{ data: AdminChatMessage }> {
+  return apiFetch<{ data: AdminChatMessage }>(`/api/v1/admin/chat/conversations/${id}/messages`, {
+    token,
+    method: 'POST',
+    body: { body },
+  });
+}
+
+export function markAdminChatRead(
+  token: string,
+  id: string,
+): Promise<{ data: { read: boolean } }> {
+  return apiFetch<{ data: { read: boolean } }>(`/api/v1/admin/chat/conversations/${id}/read`, {
+    token,
+    method: 'POST',
+    body: {},
+  });
+}
+
+export function updateAdminChatConversation(
+  token: string,
+  id: string,
+  body: { status?: string; assignedAdminId?: string | null },
+): Promise<{ data: AdminChatConversation }> {
+  return apiFetch<{ data: AdminChatConversation }>(`/api/v1/admin/chat/conversations/${id}`, {
+    token,
+    method: 'PATCH',
+    body,
+  });
 }

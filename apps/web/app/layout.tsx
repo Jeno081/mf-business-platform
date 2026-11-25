@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { BottomNav } from '@/components/BottomNav';
 import { CartProvider } from '@/components/CartProvider';
+import { ChatWidget } from '@/components/ChatWidget';
 import { PageTransition } from '@/components/PageTransition';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <PageTransition>{children}</PageTransition>
           <Footer />
           <BottomNav />
+          <ChatWidget />
         </CartProvider>
         <PwaRegister />
       </body>

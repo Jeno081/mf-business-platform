@@ -117,3 +117,21 @@ export function CopyIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function MessagesIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.2 9.2 0 0 1-3.6-.7L3 21l1.8-5A8.2 8.2 0 0 1 4 11.5a8.4 8.4 0 0 1 8.5-8.4A8.4 8.4 0 0 1 21 11.5Z" />
+      <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" />
+    </svg>
+  );
+}
+
+export function SendIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m4 4 17 8-17 8 3-8z" />
+      <path d="M7 12h14" />
+    </svg>
+  );
+}

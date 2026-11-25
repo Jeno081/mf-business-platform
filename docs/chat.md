@@ -256,3 +256,53 @@ le Lot 1.
 
 Lot 2 : widget client public (bulle, panneau, historique, envoi, reconnexion,
 fallback REST).
+
+
+---
+
+## Lot 2 — Widget client & inbox admin
+
+### Widget public
+
+Composant ChatWidget, monté dans le layout global :
+
+- bulle flottante en bas à droite ;
+- au-dessus de la bottom nav sur mobile ;
+- panneau plein écran mobile, panneau 390 px desktop ;
+- session guest créée à la première ouverture ;
+- token conservé dans localStorage (mf_chat_guest_token) ;
+- historique REST ;
+- Socket.io pour la réception temps réel ;
+- envoi REST avec mise à jour immédiate ;
+- reconnexion Socket ;
+- badge de messages non lus lorsque le panneau est fermé ;
+- indicateur de saisie admin ;
+- design Maison Forlife.
+
+### Inbox admin
+
+Nouvelle entrée **Messages** :
+
+- liste des conversations ;
+- compteur non lus ;
+- fil de discussion ;
+- réponse ;
+- changement de statut (ouverte / en attente / fermée) ;
+- actualisation automatique toutes les 5 secondes.
+
+Cette inbox est volontairement en REST/polling pour le Lot 2. Le temps réel
+admin complet (Socket.io admin) reste prévu pour le Lot 3.
+
+### Tests
+
+`	ext
+Widget mobile 390                → OK
+Widget desktop 1440              → OK
+Session guest + token            → OK
+Envoi client                     → affiché
+Rechargement page + réouverture  → historique conservé
+Socket guest connecté            → en ligne
+Réponse admin → widget           → reçue en temps réel
+Inbox admin / liste / réponse    → OK
+Nettoyage des conversations test → OK
+`

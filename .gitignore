@@ -21,5 +21,6 @@ tmp/
 .gitssh/
 
 .chrome-web/
+.chrome-chat/
 _shots_web/
 _tools/

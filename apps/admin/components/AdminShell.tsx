@@ -10,6 +10,7 @@ import {
   DashboardIcon,
   LogoutIcon,
   MenuIcon,
+  MessagesIcon,
   OrdersIcon,
   SettingsIcon,
   StockIcon,
@@ -18,6 +19,7 @@ import {
 const NAV = [
   { href: '/', label: 'Dashboard', icon: DashboardIcon },
   { href: '/commandes', label: 'Commandes', icon: OrdersIcon },
+  { href: '/messages', label: 'Messages', icon: MessagesIcon },
   { href: '/produits', label: 'Produits', icon: BoxIcon },
   { href: '/stocks', label: 'Stocks', icon: StockIcon },
   { href: '/parametres', label: 'Paramètres', icon: SettingsIcon },
@@ -27,6 +29,7 @@ function titleFor(pathname: string): { eyebrow: string; title: string } {
   if (pathname === '/') return { eyebrow: 'Vue d’ensemble', title: 'Dashboard' };
   if (pathname.startsWith('/commandes/')) return { eyebrow: 'Commandes', title: 'Détail de la commande' };
   if (pathname === '/commandes') return { eyebrow: 'Ventes', title: 'Commandes' };
+  if (pathname === '/messages') return { eyebrow: 'Relation client', title: 'Messages' };
   if (pathname === '/produits/nouveau') return { eyebrow: 'Catalogue', title: 'Nouveau produit' };
   if (pathname.startsWith('/produits/')) return { eyebrow: 'Catalogue', title: 'Modifier le produit' };
   if (pathname === '/produits') return { eyebrow: 'Catalogue', title: 'Produits' };

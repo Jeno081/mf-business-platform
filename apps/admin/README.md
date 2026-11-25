@@ -3,7 +3,7 @@
 Application Next.js séparée du site public.
 
 - Connexion admin + 2FA TOTP obligatoire.
-- Dashboard, commandes, produits, stocks.
+- Dashboard, commandes, messages, produits, stocks.
 - Upload Cloudinary et gestion des images produit.
 - Accès API protégé par JWT et 2FA.
 - Déploiement Vercel dédié.
