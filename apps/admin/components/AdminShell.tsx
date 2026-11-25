@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
+import { useAdminChat } from './AdminChatProvider';
 import {
   BoxIcon,
   CloseIcon,
@@ -42,6 +43,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { unreadTotal } = useAdminChat();
   const [menuOpen, setMenuOpen] = useState(false);
   const heading = titleFor(pathname);
   const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join('') || 'MF';
@@ -89,6 +91,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               >
                 <Icon />
                 <span>{item.label}</span>
+                {item.href === '/messages' && unreadTotal > 0 && (
+                  <em className="admin-nav__badge">{unreadTotal}</em>
+                )}
               </Link>
             );
           })}

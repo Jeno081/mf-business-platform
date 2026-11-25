@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { asyncHandler } from '../../lib/async-handler';
-import { emitChatMessage, emitConversationUpdated } from '../../lib/chat-realtime';
+import {
+  emitChatMessage,
+  emitConversationRead,
+  emitConversationUpdated,
+} from '../../lib/chat-realtime';
 import { requireAdmin, requireAuth } from '../../middlewares/auth';
 import {
   adminChatListQuerySchema,
@@ -40,7 +44,9 @@ adminChatRouter.get(
   '/conversations/:id',
   asyncHandler(async (req, res) => {
     const { id } = chatConversationIdSchema.parse(req.params);
-    res.json({ data: await getAdminConversation(id) });
+    const result = await getAdminConversation(id);
+    emitConversationRead(id, 'admin');
+    res.json({ data: result });
   }),
 );
 
@@ -61,7 +67,9 @@ adminChatRouter.post(
   '/conversations/:id/read',
   asyncHandler(async (req, res) => {
     const { id } = chatConversationIdSchema.parse(req.params);
-    res.json({ data: await markAdminRead(id) });
+    const result = await markAdminRead(id);
+    emitConversationRead(id, 'admin');
+    res.json({ data: result });
   }),
 );
 

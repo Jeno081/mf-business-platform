@@ -306,3 +306,61 @@ Réponse admin → widget           → reçue en temps réel
 Inbox admin / liste / réponse    → OK
 Nettoyage des conversations test → OK
 `
+
+
+---
+
+## Lot 3 — Admin temps réel
+
+### Temps réel admin
+
+- Connexion Socket.io admin via AdminChatProvider.
+- Room dmin:inbox.
+- Join/leave automatique de la conversation sélectionnée.
+- Remplacement du polling 5 s par le temps réel (fallback REST 30 s).
+- Mise à jour de la liste et du fil à chaque événement.
+
+### Notifications
+
+- Badge global dans le menu **Messages** (total non-lus).
+- Rafraîchissement du badge sur les événements.
+- Son de notification Web Audio pour les nouveaux messages clients.
+- Bouton **Son activé / Son coupé** mémorisé dans localStorage.
+
+### Typing
+
+- Le client envoie 	yping à l'admin.
+- L'admin envoie 	yping au client.
+- Affichage « Le client écrit… » dans l'inbox.
+- Affichage des trois points dans le widget client.
+
+### Accusés de lecture
+
+- 
+eadAt exposé dans les messages.
+- Le client voit ✓ puis ✓✓ bleu quand l'admin lit.
+- L'admin voit les mêmes coches pour ses réponses lues par le client.
+- Événement message:read émis par les routes REST et Socket.
+- Marques de lecture automatiques à l'ouverture d'une conversation.
+
+### Fichiers
+
+- pps/admin/components/AdminChatProvider.tsx
+- pps/admin/app/(dashboard)/messages/page.tsx
+- pps/api/src/lib/chat-realtime.ts
+- routes chat invité/admin pour emitConversationRead.
+
+### Tests
+
+`	ext
+Admin connecté Socket.io          → OK
+Message client → admin temps réel → OK
+Réponse admin → client temps réel → OK
+Typing admin → client             → OK
+Accusé client ✓✓ bleu             → OK
+Accusé admin ✓✓ bleu              → OK
+Liste et fil mis à jour           → OK
+Nettoyage des données de test     → OK
+`
+
+Le test sonore n’est pas automatisable en headless ; le son Web Audio est déclenché sur les messages clients entrants et peut être coupé depuis l’inbox.

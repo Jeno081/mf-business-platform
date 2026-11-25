@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
+import { useAdminChat } from '@/components/AdminChatProvider';
 import { AdminLoading, PageState, StatusBadge } from '@/components/Ui';
 import {
-  STATUS_LABELS,
   fetchAdminChatConversation,
   fetchAdminChatConversations,
   formatDate,
+  markAdminChatRead,
   sendAdminChatMessage,
   updateAdminChatConversation,
   type AdminChatConversation,
@@ -21,8 +22,16 @@ function formatTime(value: string): string {
   );
 }
 
+function mergeMessage(current: AdminChatMessage[], incoming: AdminChatMessage): AdminChatMessage[] {
+  if (current.some((message) => message.id === incoming.id)) return current;
+  return [...current, incoming].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+}
+
 export default function MessagesPage() {
   const { token } = useAuth();
+  const { socket, connected, soundEnabled, toggleSound, refreshUnread } = useAdminChat();
   const [conversations, setConversations] = useState<AdminChatConversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [conversation, setConversation] = useState<AdminChatConversation | null>(null);
@@ -32,9 +41,11 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
   const [sending, setSending] = useState(false);
+  const [typing, setTyping] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingTimer = useRef<number | null>(null);
 
   async function loadConversations() {
     if (!token) return;
@@ -60,7 +71,7 @@ export default function MessagesPage() {
       const result = await fetchAdminChatConversation(token, id);
       setConversation(result.data.conversation);
       setMessages(result.data.messages);
-      await loadConversations();
+      await refreshUnread();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Impossible de charger la conversation.');
     } finally {
@@ -71,8 +82,8 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!token) return;
     void loadConversations();
-    const interval = window.setInterval(() => void loadConversations(), 5000);
-    return () => window.clearInterval(interval);
+    const fallback = window.setInterval(() => void loadConversations(), 30000);
+    return () => window.clearInterval(fallback);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, statusFilter]);
 
@@ -83,14 +94,77 @@ export default function MessagesPage() {
       return;
     }
     void loadThread(selectedId);
-    const interval = window.setInterval(() => void loadThread(selectedId), 5000);
-    return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, token]);
 
   useEffect(() => {
+    if (!socket || !selectedId) return;
+    socket.emit('conversation:join', { conversationId: selectedId });
+    return () => {
+      socket.emit('conversation:leave', { conversationId: selectedId });
+    };
+  }, [socket, selectedId]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const onUpdated = (payload: { conversationId?: string }) => {
+      void loadConversations();
+      if (payload?.conversationId && payload.conversationId === selectedId) {
+        void loadThread(payload.conversationId);
+      }
+    };
+
+    const onMessage = (incoming: AdminChatMessage) => {
+      if (incoming.conversationId !== selectedId) return;
+      setMessages((current) => mergeMessage(current, incoming));
+      if (incoming.senderType === 'CUSTOMER' && token && selectedId) {
+        void markAdminChatRead(token, selectedId).then(() => refreshUnread()).catch(() => {});
+      }
+    };
+
+    const onRead = (payload: { conversationId?: string; reader?: string }) => {
+      if (payload?.conversationId !== selectedId || payload.reader !== 'customer') return;
+      setMessages((current) =>
+        current.map((item) =>
+          item.senderType === 'ADMIN' ? { ...item, readAt: new Date().toISOString() } : item,
+        ),
+      );
+    };
+
+    const onTyping = (payload: {
+      conversationId?: string;
+      role?: string;
+      typing?: boolean;
+    }) => {
+      if (payload?.conversationId === selectedId && payload.role === 'customer') {
+        setTyping(Boolean(payload.typing));
+      }
+    };
+
+    socket.on('conversation:updated', onUpdated);
+    socket.on('message:new', onMessage);
+    socket.on('message:read', onRead);
+    socket.on('typing', onTyping);
+
+    return () => {
+      socket.off('conversation:updated', onUpdated);
+      socket.off('message:new', onMessage);
+      socket.off('message:read', onRead);
+      socket.off('typing', onTyping);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, selectedId, token, refreshUnread]);
+
+  useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimer.current) window.clearTimeout(typingTimer.current);
+    };
+  }, []);
 
   async function handleSend() {
     const text = draft.trim();
@@ -98,16 +172,29 @@ export default function MessagesPage() {
     setSending(true);
     setMessage('');
     setError('');
+    if (typingTimer.current) window.clearTimeout(typingTimer.current);
+    socket?.emit('typing', { conversationId: selectedId, typing: false });
     try {
       const result = await sendAdminChatMessage(token, selectedId, text);
-      setMessages((current) => [...current, result.data]);
+      setMessages((current) => mergeMessage(current, result.data));
       setDraft('');
       await loadConversations();
+      await refreshUnread();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Envoi impossible.');
     } finally {
       setSending(false);
     }
+  }
+
+  function onDraftChange(value: string) {
+    setDraft(value);
+    if (!socket || !selectedId) return;
+    socket.emit('typing', { conversationId: selectedId, typing: true });
+    if (typingTimer.current) window.clearTimeout(typingTimer.current);
+    typingTimer.current = window.setTimeout(() => {
+      socket.emit('typing', { conversationId: selectedId, typing: false });
+    }, 1400);
   }
 
   async function changeStatus(status: string) {
@@ -137,22 +224,36 @@ export default function MessagesPage() {
           <h2>
             Les conversations <em>en direct.</em>
           </h2>
-          <p>Les nouveaux messages sont actualisés automatiquement toutes les 5 secondes.</p>
+          <p className="admin-chat-live">
+            <i className={connected ? 'is-online' : undefined} />
+            {connected ? 'Temps réel actif' : 'Reconnexion au temps réel…'}
+            <span>·</span>
+            {conversations.length} conversation{conversations.length > 1 ? 's' : ''}
+          </p>
         </div>
-        <select
-          className="admin-select"
-          value={statusFilter}
-          onChange={(event) => {
-            setStatusFilter(event.target.value);
-            setSelectedId(null);
-          }}
-          aria-label="Filtrer les conversations"
-        >
-          <option value="">Toutes</option>
-          <option value="OPEN">Ouvertes</option>
-          <option value="PENDING">En attente</option>
-          <option value="CLOSED">Fermées</option>
-        </select>
+        <div className="admin-chat-head-actions">
+          <button
+            className={`admin-btn admin-btn--sm ${soundEnabled ? 'admin-btn--dark' : 'admin-btn--ghost'}`}
+            type="button"
+            onClick={toggleSound}
+          >
+            {soundEnabled ? 'Son activé' : 'Son coupé'}
+          </button>
+          <select
+            className="admin-select"
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setSelectedId(null);
+            }}
+            aria-label="Filtrer les conversations"
+          >
+            <option value="">Toutes</option>
+            <option value="OPEN">Ouvertes</option>
+            <option value="PENDING">En attente</option>
+            <option value="CLOSED">Fermées</option>
+          </select>
+        </div>
       </section>
 
       {message && <div className="admin-alert admin-alert--success">{message}</div>}
@@ -227,7 +328,7 @@ export default function MessagesPage() {
               </header>
 
               <div className="admin-chat-messages" ref={scrollRef}>
-                {loadingThread && <div className="admin-chat-thread__loading">Actualisation…</div>}
+                {loadingThread && <div className="admin-chat-thread__loading">Synchronisation…</div>}
                 {messages.map((item) => {
                   const admin = item.senderType === 'ADMIN';
                   return (
@@ -237,19 +338,27 @@ export default function MessagesPage() {
                     >
                       <span>{admin ? 'Vous' : conversation.guestLabel}</span>
                       <div>{item.body}</div>
-                      <em>{formatTime(item.createdAt)}</em>
+                      <em>
+                        {formatTime(item.createdAt)}
+                        {admin && (
+                          <b className={item.readAt ? 'is-read' : undefined} aria-label={item.readAt ? 'Lu' : 'Envoyé'}>
+                            {item.readAt ? '✓✓' : '✓'}
+                          </b>
+                        )}
+                      </em>
                     </div>
                   );
                 })}
                 {messages.length === 0 && (
                   <p className="admin-chat-thread__empty">Aucun message pour le moment.</p>
                 )}
+                {typing && <p className="admin-chat-thread__typing">Le client écrit…</p>}
               </div>
 
               <div className="admin-chat-composer">
                 <textarea
                   value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
+                  onChange={(event) => onDraftChange(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' && !event.shiftKey) {
                       event.preventDefault();

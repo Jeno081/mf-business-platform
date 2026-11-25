@@ -101,6 +101,20 @@ export function ChatWidget() {
     });
 
     socket.on(
+      'message:read',
+      (payload: { conversationId?: string; reader?: string }) => {
+        if (payload.conversationId !== activeSession.id || payload.reader !== 'admin') return;
+        setMessages((current) =>
+          current.map((message) =>
+            message.senderType === 'CUSTOMER' && !message.readAt
+              ? { ...message, readAt: new Date().toISOString() }
+              : message,
+          ),
+        );
+      },
+    );
+
+    socket.on(
       'typing',
       (payload: { conversationId: string; role: string; typing: boolean }) => {
         if (payload.conversationId === activeSession.id && payload.role === 'admin') {
@@ -287,7 +301,17 @@ export function ChatWidget() {
                   >
                     {!mine && <span className="chat-message__author">Équipe MF Business</span>}
                     <div className="chat-message__bubble">{message.body}</div>
-                    <span className="chat-message__time">{formatTime(message.createdAt)}</span>
+                    <span className="chat-message__time">
+                      {formatTime(message.createdAt)}
+                      {mine && (
+                        <b
+                          className={message.readAt ? 'chat-message__ticks is-read' : 'chat-message__ticks'}
+                          aria-label={message.readAt ? 'Lu' : 'Envoyé'}
+                        >
+                          {message.readAt ? '✓✓' : '✓'}
+                        </b>
+                      )}
+                    </span>
                   </div>
                 );
               })}

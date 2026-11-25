@@ -20,6 +20,17 @@ export function emitChatMessage(message: ChatMessageDto): void {
   });
 }
 
+export function emitConversationRead(
+  conversationId: string,
+  reader: 'customer' | 'admin',
+): void {
+  if (!chatServer) return;
+  chatServer.to(conversationRoom(conversationId)).emit('message:read', {
+    conversationId,
+    reader,
+  });
+}
+
 export function emitConversationUpdated(
   conversationId: string,
   payload: Record<string, unknown> = {},

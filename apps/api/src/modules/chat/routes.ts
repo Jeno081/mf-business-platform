@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { asyncHandler } from '../../lib/async-handler';
-import { emitChatMessage } from '../../lib/chat-realtime';
+import { emitChatMessage, emitConversationRead } from '../../lib/chat-realtime';
 import { requireChatGuest } from '../../middlewares/chat-auth';
 import {
   chatConversationIdSchema,
@@ -93,6 +93,8 @@ chatRouter.post(
   requireChatGuest,
   asyncHandler(async (req, res) => {
     const { id } = chatConversationIdSchema.parse(req.params);
-    res.json({ data: await markGuestRead(id, req.chatGuestId!) });
+    const result = await markGuestRead(id, req.chatGuestId!);
+    emitConversationRead(id, 'customer');
+    res.json({ data: result });
   }),
 );
