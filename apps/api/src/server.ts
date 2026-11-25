@@ -1,16 +1,23 @@
 import 'dotenv/config';
+import { createServer } from 'node:http';
 import { prisma } from '@mf/database';
 import { app } from './app';
 import { env } from './config/env';
 import { logger } from './lib/logger';
+import { initChatRealtime } from './realtime/chat';
 
-const server = app.listen(env.PORT, () => {
+const server = createServer(app);
+const io = initChatRealtime(server);
+
+server.listen(env.PORT, () => {
   logger.info(`API MF Business démarrée sur http://localhost:${env.PORT}`);
   logger.info(`Health check : http://localhost:${env.PORT}/health`);
+  logger.info('Chat Socket.io : /socket.io');
 });
 
 async function shutdown(signal: string): Promise<void> {
   logger.info({ signal }, 'Arrêt en cours…');
+  io.close();
   server.close(async () => {
     await prisma.$disconnect();
     logger.info('Arrêt terminé.');

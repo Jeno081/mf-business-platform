@@ -162,7 +162,97 @@ Nouvelle entrée **Messages** :
 - Adapter `CORS` aux origines publiques et admin.
 - Prévoir un heartbeat et une reconnexion.
 
-## Statut
+## Statut — Lot 1 backend livré
 
-Architecture prête. **Aucun code chat n’est encore activé** : le lot commence
-après validation de la modale de suppression d’image.
+Le backend chat est implémenté :
+
+- JWT guest signé (365 jours) ;
+- session guest + conversation persistée ;
+- REST invité : session, conversation, historique, envoi, lecture ;
+- REST admin : liste, détail, réponse, lecture, statut ;
+- Socket.io /chat avec authentification guest/admin ;
+- rooms conversation:{id} et dmin:inbox ;
+- persistance MySQL avant émission ;
+- rate limits REST et anti-spam socket ;
+- index Conversation.guestToken.
+
+### Endpoints REST livrés
+
+`	ext
+POST /api/v1/chat/session
+POST /api/v1/chat/conversations
+GET  /api/v1/chat/conversations/:id
+GET  /api/v1/chat/conversations/:id/messages
+POST /api/v1/chat/conversations/:id/messages
+POST /api/v1/chat/conversations/:id/read
+
+GET   /api/v1/admin/chat/conversations
+GET   /api/v1/admin/chat/conversations/:id
+POST  /api/v1/admin/chat/conversations/:id/messages
+POST  /api/v1/admin/chat/conversations/:id/read
+PATCH /api/v1/admin/chat/conversations/:id
+`
+
+### Événements Socket.io livrés
+
+Connexion :
+
+`js
+io('https://mf-business-api.onrender.com', {
+  auth: { role: 'customer', guestToken },
+});
+// ou
+io('https://mf-business-api.onrender.com', {
+  auth: { role: 'admin', token: accessToken },
+});
+`
+
+Événements :
+
+`	ext
+conversation:ready
+admin:ready
+conversation:join
+conversation:leave
+message:send
+message:new
+message:read
+typing
+chat:error
+`
+
+Le message est créé en base avant message:new.
+
+### Tests effectués
+
+`	ext
+Session guest REST              → 200
+Message guest REST              → 201
+Historique guest                → OK
+Admin login + 2FA               → OK
+Liste admin                     → 1 conversation, non-lu
+Détail admin                    → messages
+Réponse admin REST              → ADMIN
+Historique guest après réponse  → 2 messages
+Lecture guest                   → OK
+Changement statut PENDING       → OK
+Socket guest connecté           → conversation:ready
+Socket admin connecté           → admin:ready
+Message socket guest → admin    → reçu
+Réponse socket admin → guest    → ack OK
+`
+
+Les conversations et administrateurs de test ont été supprimés.
+
+### Déploiement
+
+Aucune variable supplémentaire : les guest tokens utilisent
+JWT_REFRESH_SECRET.
+
+Render supporte WebSocket sur le service web. Aucun Redis n’est utilisé pour
+le Lot 1.
+
+### Prochain lot
+
+Lot 2 : widget client public (bulle, panneau, historique, envoi, reconnexion,
+fallback REST).

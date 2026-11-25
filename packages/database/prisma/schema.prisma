@@ -816,6 +816,7 @@ model Conversation {
   @@index([status, lastMessageAt])
   @@index([userId])
   @@index([assignedAdminId])
+  @@index([guestToken])
 }
 
 model ConversationParticipant {

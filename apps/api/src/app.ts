@@ -11,6 +11,8 @@ import { errorHandler, notFoundHandler } from './middlewares/error-handler';
 import { adminAuthRouter } from './modules/admin-auth/routes';
 import { authRouter } from './modules/auth/routes';
 import { adminCatalogRouter, catalogRouter } from './modules/catalog/routes';
+import { adminChatRouter } from './modules/chat/admin-routes';
+import { chatRouter } from './modules/chat/routes';
 import { adminOrdersRouter } from './modules/orders/admin-routes';
 import { ordersRouter } from './modules/orders/routes';
 import { uploadsRouter } from './modules/uploads/routes';
@@ -70,6 +72,8 @@ app.get('/api/v1', (_req, res) => {
       adminAuth: '/api/v1/admin/auth',
       orders: '/api/v1/orders',
       adminOrders: '/api/v1/admin/orders',
+      chat: '/api/v1/chat',
+      adminChat: '/api/v1/admin/chat',
     },
   });
 });
@@ -85,8 +89,10 @@ app.use(
 );
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin/auth', adminAuthRouter);
+app.use('/api/v1/admin/chat', adminChatRouter);
 app.use('/api/v1/admin/orders', adminOrdersRouter);
 app.use('/api/v1/admin/uploads', uploadsRouter);
+app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/orders', ordersRouter);
 app.use('/api/v1', catalogRouter);
 app.use('/api/v1/admin', adminCatalogRouter);
