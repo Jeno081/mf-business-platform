@@ -7,6 +7,7 @@ import {
   WhatsappIcon,
 } from './Icons';
 import { PwaInstall } from './PwaInstall';
+import { PushSubscribe } from './PushSubscribe';
 
 const SHOP_LINKS = [
   ['Smartphones', '/catalogue?category=smartphones'],
@@ -82,6 +83,7 @@ export function Footer() {
             <button type="submit">S’inscrire</button>
           </form>
           <PwaInstall />
+          <PushSubscribe />
           <div className="footer__socials">
             <a href="https://wa.me/243811860632" target="_blank" rel="noopener" aria-label="WhatsApp">
               <WhatsappIcon />

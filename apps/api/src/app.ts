@@ -8,6 +8,7 @@ import pinoHttp from 'pino-http';
 import { env } from './config/env';
 import { logger } from './lib/logger';
 import { errorHandler, notFoundHandler } from './middlewares/error-handler';
+import { adminAnalyticsRouter } from './modules/analytics/routes';
 import { adminAuthRouter } from './modules/admin-auth/routes';
 import { authRouter } from './modules/auth/routes';
 import { adminCatalogRouter, catalogRouter } from './modules/catalog/routes';
@@ -15,6 +16,7 @@ import { adminChatRouter } from './modules/chat/admin-routes';
 import { chatRouter } from './modules/chat/routes';
 import { adminOrdersRouter } from './modules/orders/admin-routes';
 import { ordersRouter } from './modules/orders/routes';
+import { adminPushRouter, pushRouter } from './modules/push/routes';
 import { uploadsRouter } from './modules/uploads/routes';
 import { healthRouter } from './routes/health';
 
@@ -74,6 +76,9 @@ app.get('/api/v1', (_req, res) => {
       adminOrders: '/api/v1/admin/orders',
       chat: '/api/v1/chat',
       adminChat: '/api/v1/admin/chat',
+      push: '/api/v1/push',
+      adminPush: '/api/v1/admin/push',
+      adminAnalytics: '/api/v1/admin/analytics',
     },
   });
 });
@@ -90,9 +95,12 @@ app.use(
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin/auth', adminAuthRouter);
 app.use('/api/v1/admin/chat', adminChatRouter);
+app.use('/api/v1/admin/push', adminPushRouter);
+app.use('/api/v1/admin/analytics', adminAnalyticsRouter);
 app.use('/api/v1/admin/orders', adminOrdersRouter);
 app.use('/api/v1/admin/uploads', uploadsRouter);
 app.use('/api/v1/chat', chatRouter);
+app.use('/api/v1/push', pushRouter);
 app.use('/api/v1/orders', ordersRouter);
 app.use('/api/v1', catalogRouter);
 app.use('/api/v1/admin', adminCatalogRouter);

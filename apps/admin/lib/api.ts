@@ -316,7 +316,7 @@ export function imageUrl(path: string | null): string | null {
 }
 
 export function formatPrice(value: number): string {
-  return `${new Intl.NumberFormat('fr-FR').format(value)} $`;
+  return `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(value)} $`;
 }
 
 export function formatDate(value: string): string {
@@ -520,4 +520,45 @@ export function updateAdminChatConversation(
     method: 'PATCH',
     body,
   });
+}
+
+
+export interface PushStats {
+  active: number;
+  total: number;
+  configured: boolean;
+}
+
+export function fetchPushStats(token: string): Promise<{ data: PushStats }> {
+  return apiFetch<{ data: PushStats }>('/api/v1/admin/push/stats', { token });
+}
+
+export function sendPushCampaign(
+  token: string,
+  body: { title: string; body: string; url?: string },
+): Promise<{ data: { total: number; success: number; failed: number; invalid: number } }> {
+  return apiFetch('/api/v1/admin/push/send', {
+    token,
+    method: 'POST',
+    body,
+  }) as Promise<{ data: { total: number; success: number; failed: number; invalid: number } }>;
+}
+
+export interface AnalyticsData {
+  range: { days: number; from: string };
+  summary: {
+    revenue: number;
+    orders: number;
+    averageOrderValue: number;
+    delivered: number;
+    pending: number;
+    cancelled: number;
+  };
+  revenueByDay: { date: string; revenue: number; orders: number }[];
+  ordersByStatus: { status: string; count: number }[];
+  topProducts: { name: string; quantity: number; revenue: number }[];
+}
+
+export function fetchAnalytics(token: string, days: number): Promise<{ data: AnalyticsData }> {
+  return apiFetch<{ data: AnalyticsData }>(`/api/v1/admin/analytics?days=${days}`, { token });
 }

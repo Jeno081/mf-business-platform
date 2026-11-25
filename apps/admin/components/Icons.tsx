@@ -135,3 +135,20 @@ export function SendIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function ChartIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </svg>
+  );
+}
+
+export function MegaphoneIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m3 11 15-6v14L3 13z" />
+      <path d="M7 14v5a2 2 0 0 0 4 0v-3M18 8a3 3 0 0 1 0 6" />
+    </svg>
+  );
+}
