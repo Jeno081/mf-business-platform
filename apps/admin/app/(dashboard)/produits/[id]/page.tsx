@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'r
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { AdminLoading, PageState } from '@/components/Ui';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import {
   adjustStock,
   attachProductImage,
@@ -65,6 +66,7 @@ export default function ProductEditPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [stockDeltas, setStockDeltas] = useState<Record<string, string>>({});
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; url: string; alt: string | null } | null>(null);
 
   useEffect(() => {
     if (!token || !params.id) return;
@@ -177,17 +179,21 @@ export default function ProductEditPage() {
     }
   }
 
-  async function removeImage(imageId: string) {
-    if (!token || !product) return;
-    if (!window.confirm('Supprimer cette image du produit ?')) return;
+  function requestRemoveImage(imageId: string) {
+    const image = product?.images.find((item) => item.id === imageId);
+    if (image) setDeleteTarget({ id: image.id, url: image.url, alt: image.alt });
+  }
+
+  async function confirmRemoveImage() {
+    if (!token || !product || !deleteTarget) return;
     setUploading(true);
     setError('');
     setMessage('');
     try {
-      await deleteProductImage(token, product.id, imageId);
+      await deleteProductImage(token, product.id, deleteTarget.id);
       setProduct((current) => {
         if (!current) return current;
-        const images = current.images.filter((image) => image.id !== imageId);
+        const images = current.images.filter((image) => image.id !== deleteTarget.id);
         return { ...current, images, image: images[0]?.url ?? null };
       });
       setMessage('Image supprimée.');
@@ -195,6 +201,7 @@ export default function ProductEditPage() {
       setError(err instanceof Error ? err.message : 'Suppression impossible.');
     } finally {
       setUploading(false);
+      setDeleteTarget(null);
     }
   }
 
@@ -384,7 +391,7 @@ export default function ProductEditPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={imageUrl(image.url) ?? undefined} alt={image.alt ?? ''} />
                     {index === 0 && <span className="admin-image-tile__badge">Principale</span>}
-                    <button type="button" onClick={() => removeImage(image.id)} aria-label="Supprimer l’image">
+                    <button type="button" onClick={() => requestRemoveImage(image.id)} aria-label="Supprimer l’image">
                       ×
                     </button>
                     {index > 0 && (
@@ -447,6 +454,19 @@ export default function ProductEditPage() {
           </section>
         </aside>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Supprimer cette image du produit ?"
+        description="Cette image sera retirée du produit et de la galerie publique. Cette action est définitive."
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        busy={uploading}
+        onConfirm={confirmRemoveImage}
+        onCancel={() => {
+          if (!uploading) setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
