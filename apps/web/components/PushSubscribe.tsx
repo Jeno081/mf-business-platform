@@ -17,8 +17,12 @@ function platformName(): string {
   return 'desktop';
 }
 
-async function prepareServiceWorker(): Promise<ServiceWorkerRegistration> {
+async function prepareServiceWorker(): Promise<{
+  registration: ServiceWorkerRegistration;
+  hadLegacy: boolean;
+}> {
   // Nettoyer l’ancien worker Firebase root qui entrait en conflit avec le SW PWA.
+  let hadLegacy = false;
   const registrations = await navigator.serviceWorker.getRegistrations();
   for (const registration of registrations) {
     const script =
@@ -26,6 +30,7 @@ async function prepareServiceWorker(): Promise<ServiceWorkerRegistration> {
       registration.waiting?.scriptURL ??
       registration.installing?.scriptURL;
     if (script?.endsWith('/firebase-messaging-sw.js')) {
+      hadLegacy = true;
       await registration.unregister();
     }
   }
@@ -35,7 +40,7 @@ async function prepareServiceWorker(): Promise<ServiceWorkerRegistration> {
     updateViaCache: 'none',
   });
   await navigator.serviceWorker.ready;
-  return registration;
+  return { registration, hadLegacy };
 }
 
 export function PushSubscribe() {
@@ -43,14 +48,24 @@ export function PushSubscribe() {
   const [error, setError] = useState('');
   const foregroundBound = useRef(false);
 
-  async function syncSubscription(): Promise<void> {
-    const registration = await prepareServiceWorker();
+  async function syncSubscription(forceTokenRefresh = false): Promise<void> {
+    const { registration, hadLegacy } = await prepareServiceWorker();
     const { getApps, initializeApp } = await import('firebase/app');
-    const { getMessaging, getToken, onMessage } = await import('firebase/messaging');
+    const { getMessaging, getToken, deleteToken, onMessage } = await import('firebase/messaging');
     const app =
       getApps().find((item) => item.name === 'mf-push') ??
       initializeApp(firebaseConfig, 'mf-push');
     const messaging = getMessaging(app);
+    const workerVersion = window.localStorage.getItem('mf_push_worker_version');
+    const needsTokenRotation =
+      forceTokenRefresh || hadLegacy || workerVersion !== 'unified-v1';
+    if (needsTokenRotation) {
+      try {
+        await deleteToken(messaging);
+      } catch {
+        // Aucun ancien token à supprimer.
+      }
+    }
     const token = await getToken(messaging, {
       vapidKey: firebaseVapidKey,
       serviceWorkerRegistration: registration,
@@ -79,6 +94,7 @@ export function PushSubscribe() {
       }).catch(() => {});
     }
     window.localStorage.setItem('mf_push_token', token);
+    window.localStorage.setItem('mf_push_worker_version', 'unified-v1');
 
     if (!foregroundBound.current) {
       onMessage(messaging, (message) => {
@@ -125,7 +141,7 @@ export function PushSubscribe() {
   if (!isFirebaseConfigured) return null;
   if (typeof window === 'undefined' || !('Notification' in window)) return null;
 
-  async function enable() {
+  async function enable(forceTokenRefresh = false) {
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const standalone =
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -149,7 +165,7 @@ export function PushSubscribe() {
         return;
       }
 
-      await syncSubscription();
+      await syncSubscription(forceTokenRefresh);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Notifications indisponibles.');
       setStatus('error');
@@ -179,7 +195,7 @@ export function PushSubscribe() {
         <button
           className="push-subscribe__refresh"
           type="button"
-          onClick={() => void enable()}
+          onClick={() => void enable(true)}
         >
           Rafraîchir l’abonnement
         </button>
