@@ -29,7 +29,8 @@ async function prepareServiceWorker(): Promise<{
       registration.active?.scriptURL ??
       registration.waiting?.scriptURL ??
       registration.installing?.scriptURL;
-    if (script?.endsWith('/firebase-messaging-sw.js')) {
+    const rootScope = new URL(registration.scope).pathname === '/';
+    if (script?.endsWith('/firebase-messaging-sw.js') && rootScope) {
       hadLegacy = true;
       await registration.unregister();
     }
