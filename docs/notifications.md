@@ -173,7 +173,8 @@ le client :
 2. enregistre `/sw.js` ;
 3. appelle `getToken()` ;
 4. réinscrit le token auprès de l’API ;
-5. affiche **Notifications activées**.
+5. se désabonne de l’ancien token local s’il a changé ;
+6. affiche **Notifications activées**.
 
 Cela corrige automatiquement un token expiré ou un abonnement perdu après une
 mise à jour.

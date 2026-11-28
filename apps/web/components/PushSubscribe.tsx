@@ -70,6 +70,16 @@ export function PushSubscribe() {
       throw new Error(payload?.error?.message ?? 'Abonnement impossible.');
     }
 
+    const previousToken = window.localStorage.getItem('mf_push_token');
+    if (previousToken && previousToken !== token) {
+      void fetch(`${API_URL}/api/v1/push/unsubscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: previousToken }),
+      }).catch(() => {});
+    }
+    window.localStorage.setItem('mf_push_token', token);
+
     if (!foregroundBound.current) {
       onMessage(messaging, (message) => {
         const notification = message.notification;
