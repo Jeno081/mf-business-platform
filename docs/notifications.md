@@ -144,3 +144,49 @@ invalidés.
 - `apps/api/src/lib/firebase-admin.ts`
 - `apps/api/src/modules/push/`
 - `apps/admin/app/(dashboard)/marketing/page.tsx`
+
+
+## Service Worker unique et rafraîchissement du token
+
+Depuis la version du 28 novembre 2026, le site n’utilise plus deux Service
+Workers à la racine. `firebase-messaging-sw.js` et le cache PWA sont fusionnés
+dans **`/sw.js`** :
+
+- scope unique `/` ;
+- cache PWA (`mf-business-v3`) ;
+- Firebase Messaging et gestion des notifications en arrière-plan ;
+- notification click → ouverture du lien.
+
+L’ancien `/firebase-messaging-sw.js` ne sert plus qu’à rediriger les anciennes
+installations vers `/sw.js`.
+
+### Vérification automatique du token
+
+À chaque chargement de la page, si :
+
+- la permission est accordée ;
+- `mf_push_enabled` vaut `1` ;
+
+le client :
+
+1. supprime un éventuel ancien Service Worker Firebase ;
+2. enregistre `/sw.js` ;
+3. appelle `getToken()` ;
+4. réinscrit le token auprès de l’API ;
+5. affiche **Notifications activées**.
+
+Cela corrige automatiquement un token expiré ou un abonnement perdu après une
+mise à jour.
+
+### Rafraîchissement manuel
+
+Le footer propose **Rafraîchir l’abonnement** sous le bouton activé. Il relance
+la vérification sans redemander la permission.
+
+### En cas de problème
+
+1. Fermer complètement l’application / l’onglet.
+2. Rouvrir le site.
+3. Le worker `/sw.js` doit être mis à jour automatiquement.
+4. Si nécessaire, utiliser **Rafraîchir l’abonnement**.
+5. En dernier recours, effacer les données du site et réautoriser.

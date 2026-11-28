@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { API_URL } from '@/lib/api';
 import {
   firebaseConfig,
@@ -17,19 +17,99 @@ function platformName(): string {
   return 'desktop';
 }
 
+async function prepareServiceWorker(): Promise<ServiceWorkerRegistration> {
+  // Nettoyer l’ancien worker Firebase root qui entrait en conflit avec le SW PWA.
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  for (const registration of registrations) {
+    const script =
+      registration.active?.scriptURL ??
+      registration.waiting?.scriptURL ??
+      registration.installing?.scriptURL;
+    if (script?.endsWith('/firebase-messaging-sw.js')) {
+      await registration.unregister();
+    }
+  }
+
+  const registration = await navigator.serviceWorker.register('/sw.js', {
+    scope: '/',
+    updateViaCache: 'none',
+  });
+  await navigator.serviceWorker.ready;
+  return registration;
+}
+
 export function PushSubscribe() {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
+  const foregroundBound = useRef(false);
+
+  async function syncSubscription(): Promise<void> {
+    const registration = await prepareServiceWorker();
+    const { getApps, initializeApp } = await import('firebase/app');
+    const { getMessaging, getToken, onMessage } = await import('firebase/messaging');
+    const app =
+      getApps().find((item) => item.name === 'mf-push') ??
+      initializeApp(firebaseConfig, 'mf-push');
+    const messaging = getMessaging(app);
+    const token = await getToken(messaging, {
+      vapidKey: firebaseVapidKey,
+      serviceWorkerRegistration: registration,
+    });
+
+    if (!token) throw new Error('Firebase n’a pas retourné de token.');
+
+    const response = await fetch(`${API_URL}/api/v1/push/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, platform: platformName() }),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | { error?: { message?: string } }
+      | null;
+    if (!response.ok) {
+      throw new Error(payload?.error?.message ?? 'Abonnement impossible.');
+    }
+
+    if (!foregroundBound.current) {
+      onMessage(messaging, (message) => {
+        const notification = message.notification;
+        if (notification && Notification.permission === 'granted') {
+          const data = message.data as { url?: string } | undefined;
+          new Notification(notification.title ?? 'MF Business', {
+            body: notification.body ?? '',
+            icon: '/icons/icon-192.png',
+            data: { url: data?.url ?? '/' },
+          }).onclick = () => {
+            window.open(data?.url ?? '/', '_blank');
+          };
+        }
+      });
+      foregroundBound.current = true;
+    }
+
+    window.localStorage.setItem('mf_push_enabled', '1');
+    setStatus('enabled');
+  }
 
   useEffect(() => {
-    if (!isFirebaseConfigured || !('Notification' in window)) return;
-    if (Notification.permission === 'denied') setStatus('denied');
+    if (!isFirebaseConfigured || typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      setStatus('denied');
+      return;
+    }
     if (
       Notification.permission === 'granted' &&
       window.localStorage.getItem('mf_push_enabled') === '1'
     ) {
-      setStatus('enabled');
+      setStatus('loading');
+      void syncSubscription().catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'Abonnement à rafraîchir.');
+        setStatus('error');
+      });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isFirebaseConfigured) return null;
@@ -59,51 +139,7 @@ export function PushSubscribe() {
         return;
       }
 
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-        scope: '/',
-      });
-
-      await navigator.serviceWorker.ready;
-
-      const { getApps, initializeApp } = await import('firebase/app');
-      const { getMessaging, getToken, onMessage } = await import('firebase/messaging');
-      const app = getApps().find((item) => item.name === 'mf-push') ?? initializeApp(firebaseConfig, 'mf-push');
-      const messaging = getMessaging(app);
-      const token = await getToken(messaging, {
-        vapidKey: firebaseVapidKey,
-        serviceWorkerRegistration: registration,
-      });
-
-      if (!token) throw new Error('Firebase n’a pas retourné de token.');
-
-      const response = await fetch(`${API_URL}/api/v1/push/subscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, platform: platformName() }),
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null;
-      if (!response.ok) {
-        throw new Error(payload?.error?.message ?? 'Abonnement impossible.');
-      }
-
-      onMessage(messaging, (message) => {
-        const notification = message.notification;
-        if (notification && Notification.permission === 'granted') {
-          const data = message.data as { url?: string } | undefined;
-          new Notification(notification.title ?? 'MF Business', {
-            body: notification.body ?? '',
-            icon: '/icons/icon-192.png',
-            data: { url: data?.url ?? '/' },
-          }).onclick = () => {
-            window.open(data?.url ?? '/', '_blank');
-          };
-        }
-      });
-
-      window.localStorage.setItem('mf_push_enabled', '1');
-      setStatus('enabled');
+      await syncSubscription();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Notifications indisponibles.');
       setStatus('error');
@@ -122,11 +158,22 @@ export function PushSubscribe() {
           {status === 'enabled' ? '✓' : '♢'}
         </span>
         {status === 'loading'
-          ? 'Activation…'
+          ? 'Vérification…'
           : status === 'enabled'
             ? 'Notifications activées'
-            : 'Activer les notifications'}
+            : status === 'error'
+              ? 'Réactiver les notifications'
+              : 'Activer les notifications'}
       </button>
+      {status === 'enabled' && (
+        <button
+          className="push-subscribe__refresh"
+          type="button"
+          onClick={() => void enable()}
+        >
+          Rafraîchir l’abonnement
+        </button>
+      )}
       {status === 'denied' && (
         <p>Notifications bloquées. Autorisez-les dans les réglages du navigateur.</p>
       )}

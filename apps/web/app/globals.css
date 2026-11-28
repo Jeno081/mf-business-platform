@@ -5169,3 +5169,17 @@ body.chat-is-open {
   font-size: 0.56rem;
   line-height: 1.5;
 }
+
+.push-subscribe__refresh {
+  display: block;
+  margin-top: 5px;
+  border-bottom: 1px solid rgba(243, 239, 230, 0.28);
+  color: rgba(243, 239, 230, 0.48);
+  font-size: 0.52rem;
+  line-height: 1.6;
+}
+
+.push-subscribe__refresh:hover {
+  color: var(--cream);
+  border-color: var(--cream);
+}
