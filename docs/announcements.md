@@ -58,8 +58,8 @@ Aucune authentification : les annonces sont publiques.
 - panneau latéral avec titre, message, date et lien ;
 - état lu/non lu conservé dans `localStorage` (`mf_announcements_read`) ;
 - rafraîchissement automatique toutes les 60 secondes ;
-- première visite : les annonces existantes sont marquées lues, seules les
-  nouvelles déclenchent le badge.
+- première visite : les annonces existantes apparaissent non lues ; elles
+  sont marquées lues à l’ouverture de la cloche.
 
 ## Envoi admin
 

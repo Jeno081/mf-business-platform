@@ -91,9 +91,7 @@ export function Header() {
         setAnnouncements(rows);
         const stored = window.localStorage.getItem(ANNOUNCEMENTS_READ_KEY);
         if (!stored) {
-          const ids = rows.map((row) => row.id).slice(0, 100);
-          window.localStorage.setItem(ANNOUNCEMENTS_READ_KEY, JSON.stringify(ids));
-          setUnreadAnnouncements(0);
+          setUnreadAnnouncements(rows.length);
           return;
         }
         if (announcementsOpenRef.current) {
