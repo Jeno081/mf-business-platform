@@ -926,3 +926,16 @@ model Setting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+model Announcement {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(120)
+  body        String   @db.VarChar(500)
+  url         String?  @db.VarChar(500)
+  pushSuccess Int      @default(0)
+  pushFailed  Int      @default(0)
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([publishedAt])
+}

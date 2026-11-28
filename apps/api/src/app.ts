@@ -9,6 +9,7 @@ import { env } from './config/env';
 import { logger } from './lib/logger';
 import { errorHandler, notFoundHandler } from './middlewares/error-handler';
 import { adminAnalyticsRouter } from './modules/analytics/routes';
+import { announcementsRouter } from './modules/announcements/routes';
 import { adminAuthRouter } from './modules/admin-auth/routes';
 import { authRouter } from './modules/auth/routes';
 import { adminCatalogRouter, catalogRouter } from './modules/catalog/routes';
@@ -79,6 +80,7 @@ app.get('/api/v1', (_req, res) => {
       push: '/api/v1/push',
       adminPush: '/api/v1/admin/push',
       adminAnalytics: '/api/v1/admin/analytics',
+      announcements: '/api/v1/announcements',
     },
   });
 });
@@ -101,6 +103,7 @@ app.use('/api/v1/admin/orders', adminOrdersRouter);
 app.use('/api/v1/admin/uploads', uploadsRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/push', pushRouter);
+app.use('/api/v1/announcements', announcementsRouter);
 app.use('/api/v1/orders', ordersRouter);
 app.use('/api/v1', catalogRouter);
 app.use('/api/v1/admin', adminCatalogRouter);

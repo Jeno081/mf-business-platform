@@ -58,11 +58,7 @@ export async function sendPushCampaign(input: PushCampaignInput) {
     select: { id: true, endpoint: true },
   });
 
-  if (subscriptions.length === 0) {
-    return { total: 0, success: 0, failed: 0, invalid: 0 };
-  }
-
-  const messaging = firebaseMessaging();
+  const messaging = subscriptions.length > 0 ? firebaseMessaging() : null;
   const siteUrl = 'https://mf-business-platform.vercel.app';
   const requested = input.url?.trim();
   const link = requested
@@ -70,6 +66,7 @@ export async function sendPushCampaign(input: PushCampaignInput) {
       ? requested
       : `${siteUrl}${requested.startsWith('/') ? requested : `/${requested}`}`
     : siteUrl;
+  const publicUrl = requested || '/';
   const chunks: typeof subscriptions[] = [];
   for (let index = 0; index < subscriptions.length; index += 500) {
     chunks.push(subscriptions.slice(index, index + 500));
@@ -80,6 +77,7 @@ export async function sendPushCampaign(input: PushCampaignInput) {
   const invalidIds: string[] = [];
 
   for (const chunk of chunks) {
+    if (!messaging) break;
     const response = await messaging.sendEachForMulticast({
       tokens: chunk.map((item) => item.endpoint),
       notification: {
@@ -138,10 +136,21 @@ export async function sendPushCampaign(input: PushCampaignInput) {
     },
   });
 
+  const announcement = await prisma.announcement.create({
+    data: {
+      title: input.title,
+      body: input.body,
+      url: publicUrl,
+      pushSuccess: success,
+      pushFailed: failed,
+    },
+  });
+
   return {
     total: subscriptions.length,
     success,
     failed,
     invalid: invalidIds.length,
+    announcementId: announcement.id,
   };
 }

@@ -2,10 +2,21 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { formatPrice, imageUrl } from '@/lib/api';
+import { fetchAnnouncements, type Announcement } from '@/lib/announcements';
 import { useCart } from './CartProvider';
-import { CartIcon, CloseIcon, MenuIcon, SearchIcon } from './Icons';
+import { BellIcon, CartIcon, CloseIcon, MenuIcon, SearchIcon } from './Icons';
+
+const ANNOUNCEMENTS_READ_KEY = 'mf_announcements_read';
+
+function formatAnnouncementDate(value: string): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(value));
+}
 
 const NAV_LINKS = [
   { href: '/', label: 'Accueil' },
@@ -21,13 +32,17 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [announcementsOpen, setAnnouncementsOpen] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [unreadAnnouncements, setUnreadAnnouncements] = useState(0);
+  const announcementsOpenRef = useRef(false);
   const { items, count, subtotal, setQuantity, removeItem } = useCart();
 
   useEffect(() => {
-    const shouldLock = menuOpen || searchOpen || cartOpen;
+    const shouldLock = menuOpen || searchOpen || cartOpen || announcementsOpen;
     document.body.classList.toggle('is-locked', shouldLock);
     return () => document.body.classList.remove('is-locked');
-  }, [menuOpen, searchOpen, cartOpen]);
+  }, [menuOpen, searchOpen, cartOpen, announcementsOpen]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -35,6 +50,7 @@ export function Header() {
         setMenuOpen(false);
         setSearchOpen(false);
         setCartOpen(false);
+        setAnnouncementsOpen(false);
       }
     }
     window.addEventListener('keydown', onKeyDown);
@@ -45,7 +61,65 @@ export function Header() {
     setMenuOpen(false);
     setSearchOpen(false);
     setCartOpen(false);
+    setAnnouncementsOpen(false);
   }
+
+  function markAnnouncementsRead(rows: Announcement[]): void {
+    const stored = window.localStorage.getItem(ANNOUNCEMENTS_READ_KEY);
+    let previous: string[] = [];
+    try {
+      previous = stored ? (JSON.parse(stored) as string[]) : [];
+    } catch {
+      previous = [];
+    }
+    const merged = [...new Set([...rows.map((row) => row.id), ...previous])].slice(0, 100);
+    window.localStorage.setItem(ANNOUNCEMENTS_READ_KEY, JSON.stringify(merged));
+    setUnreadAnnouncements(0);
+  }
+
+  useEffect(() => {
+    announcementsOpenRef.current = announcementsOpen;
+  }, [announcementsOpen]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAnnouncements() {
+      try {
+        const rows = await fetchAnnouncements(20);
+        if (cancelled) return;
+        setAnnouncements(rows);
+        const stored = window.localStorage.getItem(ANNOUNCEMENTS_READ_KEY);
+        if (!stored) {
+          const ids = rows.map((row) => row.id).slice(0, 100);
+          window.localStorage.setItem(ANNOUNCEMENTS_READ_KEY, JSON.stringify(ids));
+          setUnreadAnnouncements(0);
+          return;
+        }
+        if (announcementsOpenRef.current) {
+          markAnnouncementsRead(rows);
+          return;
+        }
+        let parsed: string[] = [];
+        try {
+          parsed = JSON.parse(stored) as string[];
+        } catch {
+          parsed = [];
+        }
+        const read = new Set(parsed);
+        setUnreadAnnouncements(rows.filter((row) => !read.has(row.id)).length);
+      } catch {
+        // La cloche reste silencieuse si l’API est indisponible.
+      }
+    }
+
+    void loadAnnouncements();
+    const timer = window.setInterval(() => void loadAnnouncements(), 60000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   return (
     <>
@@ -110,6 +184,27 @@ export function Header() {
               <SearchIcon />
             </button>
             <button
+              className="icon-btn announcement-btn"
+              type="button"
+              aria-label="Ouvrir les annonces"
+              aria-expanded={announcementsOpen}
+              onClick={() => {
+                announcementsOpenRef.current = true;
+                setAnnouncementsOpen(true);
+                markAnnouncementsRead(announcements);
+                setMenuOpen(false);
+                setSearchOpen(false);
+                setCartOpen(false);
+              }}
+            >
+              <BellIcon />
+              {unreadAnnouncements > 0 && (
+                <span className="announcement-btn__count">
+                  {unreadAnnouncements > 9 ? '9+' : unreadAnnouncements}
+                </span>
+              )}
+            </button>
+            <button
               className="icon-btn cart-btn"
               type="button"
               aria-label="Ouvrir le panier"
@@ -162,7 +257,7 @@ export function Header() {
       </header>
 
       <div
-        className={`nav-overlay ${menuOpen || cartOpen ? 'is-visible' : ''}`}
+        className={`nav-overlay ${menuOpen || cartOpen || announcementsOpen ? 'is-visible' : ''}`}
         onClick={closeAll}
         aria-hidden="true"
       />
@@ -196,6 +291,45 @@ export function Header() {
           >
             Écrire sur WhatsApp
           </a>
+        </div>
+      </aside>
+
+      <aside className={`announcements-drawer ${announcementsOpen ? 'is-open' : ''}`} aria-hidden={!announcementsOpen}>
+        <div className="announcements-drawer__head">
+          <div>
+            <span className="eyebrow">Le journal</span>
+            <h2>Annonces</h2>
+          </div>
+          <button className="icon-btn" type="button" onClick={closeAll} aria-label="Fermer les annonces">
+            <CloseIcon />
+          </button>
+        </div>
+        <div className="announcements-drawer__body">
+          {announcements.length === 0 ? (
+            <div className="announcements-empty">
+              <span className="announcements-empty__icon">
+                <BellIcon />
+              </span>
+              <h3>Rien à l’affiche pour le moment.</h3>
+              <p>Les nouveautés et offres de la maison apparaîtront ici.</p>
+            </div>
+          ) : (
+            announcements.map((announcement) => (
+              <article className="announcement-item" key={announcement.id}>
+                <time>{formatAnnouncementDate(announcement.publishedAt)}</time>
+                <h3>{announcement.title}</h3>
+                <p>{announcement.body}</p>
+                {announcement.url && (
+                  <Link href={announcement.url} onClick={closeAll}>
+                    Découvrir <span aria-hidden="true">→</span>
+                  </Link>
+                )}
+              </article>
+            ))
+          )}
+        </div>
+        <div className="announcements-drawer__foot">
+          <span>Les annonces sont aussi envoyées par notification.</span>
         </div>
       </aside>
 
