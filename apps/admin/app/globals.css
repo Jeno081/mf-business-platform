@@ -2593,3 +2593,20 @@ body.admin-modal-open {
     grid-column: auto;
   }
 }
+
+.admin-push-alerts {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-push-alerts > p {
+  margin: 0;
+}
+
+.admin-link-button {
+  justify-self: start;
+  padding: 0;
+  border-bottom: 1px solid var(--ink);
+  color: var(--muted);
+  font-size: 0.58rem;
+}

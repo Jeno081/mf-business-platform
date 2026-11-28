@@ -29,6 +29,7 @@ export const createOrderSchema = z
       .enum(['CASH_ON_DELIVERY', 'MOBILE_MONEY'])
       .default('CASH_ON_DELIVERY'),
     idempotencyKey: z.string().min(8).max(191).optional(),
+    pushToken: z.string().trim().min(20).max(500).optional(),
   })
   .strict();
 

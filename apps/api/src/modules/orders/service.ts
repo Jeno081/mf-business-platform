@@ -2,6 +2,11 @@ import { randomInt } from 'node:crypto';
 import { prisma, Prisma, type OrderStatus } from '@mf/database';
 import { AppError } from '../../middlewares/error-handler';
 import { writeAuditLog } from '../../lib/audit';
+import { signOrderToken, trackingUrl } from '../../lib/order-token';
+import {
+  notifyAdminNewOrder,
+  notifyCustomerOrderStatus,
+} from '../push/service';
 import type {
   AdminOrderListQuery,
   CreateOrderInput,
@@ -68,6 +73,8 @@ function publicOrder(order: OrderDetail) {
     shippingAddress: order.shippingAddress,
     notes: order.notes,
     createdAt: order.createdAt.toISOString(),
+    trackingToken: signOrderToken(order.id),
+    trackingUrl: trackingUrl(signOrderToken(order.id)),
     items: order.items.map((item) => ({
       id: item.id,
       productName: item.productName,
@@ -251,6 +258,7 @@ export async function createOrder(input: CreateOrderInput) {
               paymentStatus: 'PENDING',
               paymentMethod: input.paymentMethod,
               notes: input.customer.note ?? null,
+              customerPushToken: input.pushToken ?? null,
               items: {
                 create: preparedItems.map((item) => ({
                   productId: item.productId,
@@ -294,7 +302,12 @@ export async function createOrder(input: CreateOrderInput) {
         { timeout: 60_000, maxWait: 10_000 },
       );
 
-      return publicOrder(order);
+      const result = publicOrder(order);
+      void notifyAdminNewOrder(
+        result.orderNumber,
+        `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(result.total)} $`,
+      ).catch(() => {});
+      return result;
     } catch (error) {
       if (error instanceof AppError) throw error;
       if (typeof error === 'object' && error !== null && 'code' in error) {
@@ -358,6 +371,10 @@ export async function adminListOrders(query: AdminOrderListQuery) {
 }
 
 export async function adminGetOrder(id: string) {
+  return publicOrder(await findDetail(id));
+}
+
+export async function getTrackingOrder(id: string) {
   return publicOrder(await findDetail(id));
 }
 
@@ -459,7 +476,25 @@ export async function updateOrderStatus(
     after: { status: input.status, note: input.note },
   });
 
-  return publicOrder(await findDetail(order.id));
+  const updated = publicOrder(await findDetail(order.id));
+  const statusMessages: Record<string, string> = {
+    CONFIRMED: 'Votre commande est confirmée. Merci pour votre confiance !',
+    PREPARING: 'Votre commande est en préparation.',
+    SHIPPED: 'Votre commande est en route !',
+    DELIVERED: 'Votre commande a été livrée. Merci !',
+    CANCELLED: 'Votre commande a été annulée.',
+    REFUNDED: 'Votre commande a été remboursée.',
+  };
+  const statusMessage = statusMessages[input.status];
+  if (statusMessage) {
+    void notifyCustomerOrderStatus(
+      order.customerPushToken,
+      order.orderNumber,
+      statusMessage,
+      updated.trackingUrl,
+    ).catch(() => {});
+  }
+  return updated;
 }
 
 export async function markOrderPaid(

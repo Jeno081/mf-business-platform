@@ -191,3 +191,76 @@ la vérification sans redemander la permission.
 3. Le worker `/sw.js` doit être mis à jour automatiquement.
 4. Si nécessaire, utiliser **Rafraîchir l’abonnement**.
 5. En dernier recours, effacer les données du site et réautoriser.
+
+
+## Alertes admin (chat et commandes)
+
+Les notifications admin sont distinctes des notifications client :
+
+- rôle ADMIN en base ;
+- token obtenu depuis l’application admin ;
+- page **Marketing** → carte **Alertes sur ce téléphone**.
+
+### Variables Vercel — projet admin
+
+Ajouter les mêmes 7 variables NEXT_PUBLIC_FIREBASE_* sur le projet Vercel
+**admin**, puis redéployer.
+
+Dans Google Cloud → Credentials → clé API → restrictions HTTP :
+
+`	ext
+https://admin-mf-business.vercel.app/*
+https://mf-business-platform.vercel.app/*
+`
+
+### iPhone
+
+1. Ouvrir l’admin dans Safari.
+2. Partager → **Sur l’écran d’accueil**.
+3. Ouvrir l’icône **MF Admin**.
+4. Se connecter avec la 2FA.
+5. Aller dans **Marketing**.
+6. **Activer les alertes**.
+
+### Ce qui déclenche une notification
+
+- nouveau message chat client → admin ;
+- nouvelle commande → admin ;
+- réponse admin dans le chat → client ;
+- changement de statut commande → client ;
+- campagne Marketing → clients uniquement.
+
+Un clic sur une alerte chat ouvre la conversation ; une alerte commande ouvre
+la commande ou le suivi.
+
+
+## Notifications de chat et de commande
+
+### Chat
+
+- Message client → push aux appareils `ADMIN`.
+- Réponse admin → push aux appareils clients liés à la conversation.
+- L’abonnement client est lié à la conversation via le guest token du chat.
+- Le clic ouvre le chat (`/?chat=1`) ou la conversation admin
+  (`/messages?conversation=...`).
+
+### Commandes
+
+- Nouvelle commande → push aux appareils `ADMIN`.
+- Changement de statut → push au token client stocké dans
+  `Order.customerPushToken`.
+- Le clic ouvre la page de suivi `/suivi/<token>`.
+
+### Activer les alertes admin
+
+1. Ajouter les 7 variables `NEXT_PUBLIC_FIREBASE_*` au projet **admin** Vercel.
+2. Ajouter `https://admin-mf-business.vercel.app/*` aux referrers autorisés de la
+   clé API Google Cloud.
+3. Redéployer l’admin.
+4. Sur le téléphone, ouvrir l’admin dans Safari.
+5. Partager → **Sur l’écran d’accueil**.
+6. Ouvrir **MF Admin**, se connecter avec la 2FA.
+7. **Marketing** → **Alertes sur ce téléphone** → **Activer les alertes**.
+
+Sans cette étape, les alertes chat/commandes n’ont aucun appareil `ADMIN`
+destinataire.

@@ -140,6 +140,14 @@ export function ChatWidget() {
       setMessages(result.messages);
       setUnread(result.conversation.unreadCount);
       connectSocket(result.guestToken, result.conversation);
+      const pushToken = window.localStorage.getItem('mf_push_token');
+      if (pushToken) {
+        void fetch(`${API_URL}/api/v1/push/link-conversation`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: pushToken, guestToken: result.guestToken }),
+        }).catch(() => {});
+      }
       scrollToBottom();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Le chat est momentanément indisponible.');
@@ -147,6 +155,12 @@ export function ChatWidget() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('chat') === '1') {
+      setOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!open || session || loading) return;

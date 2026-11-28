@@ -526,6 +526,8 @@ export function updateAdminChatConversation(
 export interface PushStats {
   active: number;
   total: number;
+  activeCustomers: number;
+  activeAdmins: number;
   configured: boolean;
 }
 
@@ -561,4 +563,17 @@ export interface AnalyticsData {
 
 export function fetchAnalytics(token: string, days: number): Promise<{ data: AnalyticsData }> {
   return apiFetch<{ data: AnalyticsData }>(`/api/v1/admin/analytics?days=${days}`, { token });
+}
+
+
+export async function fetchOrderInvoice(token: string, orderId: string): Promise<Blob> {
+  const response = await fetch(
+    `${API_URL}/api/v1/admin/orders/${encodeURIComponent(orderId)}/invoice?download=1`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    },
+  );
+  if (!response.ok) throw new Error('Facture indisponible.');
+  return response.blob();
 }

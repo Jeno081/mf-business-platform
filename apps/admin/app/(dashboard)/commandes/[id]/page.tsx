@@ -9,6 +9,7 @@ import {
   ALLOWED_TRANSITIONS,
   STATUS_LABELS,
   fetchOrder,
+  fetchOrderInvoice,
   formatDate,
   formatPrice,
   markOrderPaid,
@@ -27,6 +28,7 @@ export default function OrderDetailPage() {
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [invoiceBusy, setInvoiceBusy] = useState(false);
 
   useEffect(() => {
     if (!token || !params.id) return;
@@ -85,6 +87,26 @@ export default function OrderDetailPage() {
     }
   }
 
+  async function openInvoice() {
+    if (!order || !token) return;
+    setInvoiceBusy(true);
+    setError('');
+    try {
+      const blob = await fetchOrderInvoice(token, order.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Facture indisponible.');
+    } finally {
+      setInvoiceBusy(false);
+    }
+  }
+
   if (loading) return <AdminLoading rows={6} />;
   if (!order) return <PageState title="Commande introuvable" tone="danger">{error}</PageState>;
 
@@ -107,6 +129,14 @@ export default function OrderDetailPage() {
           <StatusBadge status={order.status} />
           <StatusBadge status={order.paymentStatus} kind="payment" />
           <strong>{formatPrice(order.total)}</strong>
+          <button
+            className="admin-btn admin-btn--ghost"
+            type="button"
+            onClick={() => void openInvoice()}
+            disabled={invoiceBusy}
+          >
+            {invoiceBusy ? 'Préparation…' : 'Facture PDF'}
+          </button>
         </div>
       </section>
 

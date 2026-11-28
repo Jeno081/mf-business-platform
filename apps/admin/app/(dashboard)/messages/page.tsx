@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { useAdminChat } from '@/components/AdminChatProvider';
 import { AdminLoading, PageState, StatusBadge } from '@/components/Ui';
@@ -31,6 +32,8 @@ function mergeMessage(current: AdminChatMessage[], incoming: AdminChatMessage): 
 
 export default function MessagesPage() {
   const { token } = useAuth();
+  const searchParams = useSearchParams();
+  const requestedConversation = searchParams.get('conversation');
   const { socket, connected, soundEnabled, toggleSound, refreshUnread } = useAdminChat();
   const [conversations, setConversations] = useState<AdminChatConversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -96,6 +99,15 @@ export default function MessagesPage() {
     void loadThread(selectedId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, token]);
+
+  useEffect(() => {
+    if (
+      requestedConversation &&
+      conversations.some((item) => item.id === requestedConversation)
+    ) {
+      setSelectedId(requestedConversation);
+    }
+  }, [requestedConversation, conversations]);
 
   useEffect(() => {
     if (!socket || !selectedId) return;

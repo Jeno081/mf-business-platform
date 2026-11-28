@@ -176,5 +176,6 @@ Le back-office séparé `apps/admin` est documenté dans
 - [`docs/notifications.md`](docs/notifications.md)
 - [`docs/announcements.md`](docs/announcements.md)
 - [`docs/analytics.md`](docs/analytics.md)
+- [`docs/orders.md`](docs/orders.md)
 - [`docs/deploy-render.md`](docs/deploy-render.md)
 - [`packages/database/prisma/schema.prisma`](packages/database/prisma/schema.prisma)

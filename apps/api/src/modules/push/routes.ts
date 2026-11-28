@@ -1,8 +1,20 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { asyncHandler } from '../../lib/async-handler';
-import { pushSubscribeSchema, pushUnsubscribeSchema } from './schemas';
-import { subscribeToPush, unsubscribeFromPush, pushStats, sendPushCampaign } from './service';
+import {
+  adminPushSubscribeSchema,
+  pushLinkConversationSchema,
+  pushSubscribeSchema,
+  pushUnsubscribeSchema,
+} from './schemas';
+import {
+  linkPushConversation,
+  pushStats,
+  sendPushCampaign,
+  subscribeAdminToPush,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from './service';
 import { pushCampaignSchema } from './schemas';
 import { requireAdmin, requireAuth } from '../../middlewares/auth';
 
@@ -20,8 +32,21 @@ pushRouter.post(
   pushLimiter,
   asyncHandler(async (req, res) => {
     const input = pushSubscribeSchema.parse(req.body);
-    const result = await subscribeToPush(input.token, req.get('user-agent') ?? null);
+    const result = await subscribeToPush(
+      input.token,
+      req.get('user-agent') ?? null,
+      input.guestToken,
+    );
     res.status(201).json({ data: { id: result.id } });
+  }),
+);
+
+pushRouter.post(
+  '/link-conversation',
+  pushLimiter,
+  asyncHandler(async (req, res) => {
+    const input = pushLinkConversationSchema.parse(req.body);
+    res.json({ data: await linkPushConversation(input.token, input.guestToken) });
   }),
 );
 
@@ -37,6 +62,18 @@ pushRouter.post(
 export const adminPushRouter = Router();
 
 adminPushRouter.use(requireAuth, requireAdmin);
+
+adminPushRouter.post(
+  '/subscribe',
+  asyncHandler(async (req, res) => {
+    const input = adminPushSubscribeSchema.parse(req.body);
+    const result = await subscribeAdminToPush(
+      input.token,
+      req.get('user-agent') ?? null,
+    );
+    res.status(201).json({ data: { id: result.id } });
+  }),
+);
 
 adminPushRouter.get(
   '/stats',

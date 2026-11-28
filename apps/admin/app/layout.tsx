@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'MF Business — Back-office',
   description: 'Administration MF Business : commandes, produits et stocks.',
   robots: { index: false, follow: false },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'MF Admin' },
+  icons: { icon: '/icons/icon-192.png', apple: '/icons/apple-touch-icon.png' },
 };
 
 export const viewport: Viewport = {

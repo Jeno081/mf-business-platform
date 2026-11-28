@@ -124,6 +124,8 @@ export interface OrderResponse {
   };
   notes: string | null;
   createdAt: string;
+  trackingToken: string;
+  trackingUrl: string;
   items: OrderItemResponse[];
 }
 
@@ -140,6 +142,7 @@ export interface CreateOrderPayload {
   };
   paymentMethod: 'CASH_ON_DELIVERY' | 'MOBILE_MONEY';
   idempotencyKey: string;
+  pushToken?: string;
 }
 
 interface SingleResponse<T> {
@@ -281,4 +284,23 @@ export async function createOrder(payload: CreateOrderPayload): Promise<OrderRes
   } finally {
     clearTimeout(timeout);
   }
+}
+
+
+export async function fetchTrackedOrder(token: string): Promise<OrderResponse> {
+  const response = await fetch(
+    `${API_URL}/api/v1/orders/track/${encodeURIComponent(token)}`,
+    { cache: 'no-store' },
+  );
+  const body = (await response.json().catch(() => null)) as
+    | { data?: OrderResponse; error?: { message?: string } }
+    | null;
+  if (!response.ok || !body?.data) {
+    throw new Error(body?.error?.message ?? 'Commande introuvable.');
+  }
+  return body.data;
+}
+
+export function trackingInvoiceUrl(token: string, download = false): string {
+  return `${API_URL}/api/v1/orders/track/${encodeURIComponent(token)}/invoice${download ? '?download=1' : ''}`;
 }

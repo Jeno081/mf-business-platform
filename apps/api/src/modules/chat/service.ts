@@ -2,6 +2,10 @@ import { prisma, Prisma, type SenderType } from '@mf/database';
 import { AppError } from '../../middlewares/error-handler';
 import { createGuestId, signGuestToken, verifyGuestToken } from '../../lib/chat-tokens';
 import type { AdminChatListQuery, AdminChatUpdateInput } from './schemas';
+import {
+  notifyAdminNewChat,
+  notifyCustomerNewChatReply,
+} from '../push/service';
 
 const messageSelect = {
   id: true,
@@ -198,12 +202,16 @@ async function persistMessage(
 
 export async function sendGuestMessage(id: string, guestId: string, body: string) {
   await getOwnedConversation(id, guestId);
-  return persistMessage(id, 'CUSTOMER', body, null);
+  const message = await persistMessage(id, 'CUSTOMER', body, null);
+  void notifyAdminNewChat(id, guestLabel(id), body).catch(() => {});
+  return message;
 }
 
 export async function sendAdminMessage(id: string, adminId: string, body: string) {
   await getConversation(id);
-  return persistMessage(id, 'ADMIN', body, adminId);
+  const message = await persistMessage(id, 'ADMIN', body, adminId);
+  void notifyCustomerNewChatReply(id, body).catch(() => {});
+  return message;
 }
 
 export async function markGuestRead(id: string, guestId: string) {

@@ -445,6 +445,7 @@ model Order {
   paymentStatus    PaymentStatus @default(PENDING)
   paymentMethod    PaymentMethod @default(CASH_ON_DELIVERY)
   notes            String?       @db.Text
+  customerPushToken String?      @db.VarChar(500)
   placedAt         DateTime      @default(now())
   confirmedAt      DateTime?
   deliveredAt      DateTime?
@@ -890,13 +891,17 @@ model PushSubscription {
   endpoint  String    @unique @db.VarChar(500)
   p256dh    String    @db.VarChar(255)
   auth      String    @db.VarChar(255)
-  userAgent String?   @db.VarChar(255)
-  createdAt DateTime  @default(now())
-  revokedAt DateTime?
+  userAgent      String?   @db.VarChar(255)
+  role           String    @default("CUSTOMER") @db.VarChar(20)
+  conversationId String?   @db.VarChar(191)
+  createdAt      DateTime  @default(now())
+  revokedAt      DateTime?
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([role, revokedAt])
+  @@index([conversationId, revokedAt])
 }
 
 // ---------------------------------------------------------------------------

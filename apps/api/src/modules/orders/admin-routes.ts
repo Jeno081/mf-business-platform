@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../../lib/async-handler';
 import { requireAdmin, requireAuth } from '../../middlewares/auth';
+import { streamInvoice } from '../../lib/invoice';
 import {
   adminOrderListQuerySchema,
   markOrderPaidSchema,
@@ -33,6 +34,14 @@ adminOrdersRouter.get(
   asyncHandler(async (req, res) => {
     const { id } = idSchema.parse(req.params);
     res.json({ data: await adminGetOrder(id) });
+  }),
+);
+
+adminOrdersRouter.get(
+  '/:id/invoice',
+  asyncHandler(async (req, res) => {
+    const { id } = idSchema.parse(req.params);
+    await streamInvoice(id, res, req.query.download === '1');
   }),
 );
 

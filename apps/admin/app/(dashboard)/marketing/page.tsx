@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { PageState } from '@/components/Ui';
+import { AdminPushSubscribe } from '@/components/AdminPushSubscribe';
 import { fetchPushStats, sendPushCampaign, type PushStats } from '@/lib/api';
 
 export default function MarketingPage() {
@@ -112,8 +113,8 @@ export default function MarketingPage() {
               <div><p className="admin-eyebrow">Audience</p><h3>Appareils abonnés</h3></div>
             </div>
             <div className="admin-push-stats">
-              <div><strong>{stats?.active ?? '—'}</strong><span>appareils actifs</span></div>
-              <div><strong>{stats?.total ?? '—'}</strong><span>tokens enregistrés</span></div>
+              <div><strong>{stats?.activeCustomers ?? '—'}</strong><span>clients abonnés</span></div>
+              <div><strong>{stats?.activeAdmins ?? '—'}</strong><span>alertes admin</span></div>
             </div>
             <span className={stats?.configured ? 'status status--paid' : 'status status--pending'}>
               {stats?.configured ? 'Firebase configuré' : 'Firebase non configuré'}
@@ -123,6 +124,13 @@ export default function MarketingPage() {
                 Ajoutez le compte de service Firebase sur Render pour activer l’envoi.
               </p>
             )}
+          </section>
+
+          <section className="admin-panel">
+            <div className="admin-panel__head">
+              <div><p className="admin-eyebrow">Admin</p><h3>Alertes téléphone</h3></div>
+            </div>
+            <AdminPushSubscribe />
           </section>
 
           <section className="admin-panel">

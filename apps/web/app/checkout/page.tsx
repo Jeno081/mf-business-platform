@@ -107,6 +107,7 @@ export default function CheckoutPage() {
         },
         paymentMethod,
         idempotencyKey,
+        pushToken: window.localStorage.getItem('mf_push_token') ?? undefined,
       });
 
       const lines = created.items.map(
@@ -144,7 +145,6 @@ export default function CheckoutPage() {
       const url = `https://wa.me/243811860632?text=${encodeURIComponent(message)}`;
       setOrder(created);
       setWhatsappUrl(url);
-      window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       setOrderError(
         error instanceof Error
@@ -156,7 +156,7 @@ export default function CheckoutPage() {
     }
   }
 
-  if (items.length === 0 && !whatsappUrl) {
+  if (items.length === 0 && !order) {
     return (
       <main className="cart-page">
         <div className="container">
@@ -173,7 +173,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="checkout-page">
+    <main className={order ? "checkout-page checkout-page--complete" : "checkout-page"}>
       <div className="container">
         <nav className="breadcrumb" aria-label="Fil d’Ariane">
           <Link href="/">Accueil</Link>
@@ -189,35 +189,52 @@ export default function CheckoutPage() {
             Finalisons <em>votre commande.</em>
           </h1>
           <p>
-            Renseignez vos coordonnées : le récapitulatif sera envoyé sur WhatsApp pour confirmation.
+            Renseignez vos coordonnées : votre commande sera enregistrée et suivie directement dans l’application.
           </p>
         </div>
 
-        {whatsappUrl && (
+        {order && (
           <div className="checkout-success">
             <p className="eyebrow">Commande enregistrée</p>
-            <h2 className="display">La commande {order?.orderNumber} est prête.</h2>
+            <h2 className="display">Merci, {order.customer.name.split(' ')[0]}.</h2>
             <p>
-              La commande est enregistrée dans la base MF Business. Si la fenêtre WhatsApp ne
-              s’est pas ouverte, cliquez sur le bouton ci-dessous. Un conseiller confirmera la
-              disponibilité et le paiement.
+              Votre commande <strong>{order.orderNumber}</strong> est bien enregistrée.
+              Suivez son avancement et retrouvez votre facture depuis votre téléphone.
             </p>
             <div className="checkout-success__actions">
-              <a className="btn btn--dark" href={whatsappUrl} target="_blank" rel="noopener">
-                <WhatsappIcon /> Ouvrir WhatsApp
-              </a>
+              <Link className="btn btn--dark" href={`/suivi/${order.trackingToken}`}>
+                Suivre ma commande
+              </Link>
+              {order.status !== 'PENDING' && order.status !== 'CANCELLED' && (
+                <a
+                  className="btn btn--outline"
+                  href={`${process.env.NEXT_PUBLIC_API_URL ?? 'https://mf-business-api.onrender.com'}/api/v1/orders/track/${order.trackingToken}/invoice`}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Voir ma facture
+                </a>
+              )}
+              {whatsappUrl && (
+                <a className="btn btn--outline" href={whatsappUrl} target="_blank" rel="noopener">
+                  <WhatsappIcon /> Envoyer sur WhatsApp
+                </a>
+              )}
               <button
                 className="btn btn--outline"
                 type="button"
                 onClick={() => {
                   clearCart();
-                  setWhatsappUrl(null);
                   setOrder(null);
+                  setWhatsappUrl(null);
                 }}
               >
-                Vider le panier
+                Nouvelle commande
               </button>
             </div>
+            <p className="checkout-success__note">
+              La facture PDF sera disponible dès que la commande sera validée par la maison.
+            </p>
           </div>
         )}
 
